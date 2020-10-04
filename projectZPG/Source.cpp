@@ -21,24 +21,28 @@
 
 
 float points[] = {
-	0.0f, 0.5f, 0.0f,
-	0.5f, -0.5f, 0.0f,
-	-0.5f, -0.5f, 0.0f
+	 -0.5f, -0.5f, -0.5f, 1.0f, 0.0f, 0.0f,
+      0.5f, -0.5f, -0.5f, 0.0f, 1.0f, 0.0f,
+	  0.5f,  0.5f, -0.5f, 0.0f, 0.0f, 1.0f
 };
 
 const char* vertex_shader =
 "#version 330\n"
 "layout(location=0) in vec3 vp;"
-"uniform mat4 model"
+"layout(location=1) in vec3 color;"
+"uniform mat4 model;"
+"out vec3 v_color;"
 "void main () {"
 "     gl_Position = model * vec4(vp, 1.0f);"
+"	  v_color = color;"
 "}";
 
 const char* fragment_shader =
 "#version 330\n"
-"out vec4 frag_colour"
+"in vec3 v_color;"
+"out vec4 frag_colour;"
 "void main () {"
-"     frag_colour = vec4 (0.5, 0.0, 0.5, 1.0);"
+"     frag_colour = vec4(v_color, 1.0);"
 "}";
 
 
@@ -67,12 +71,12 @@ int main(void)
 		exit(EXIT_FAILURE);
 	}
 
-	/*
+	
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-	//*/
+	
 	window = glfwCreateWindow(800, 600, "ZPG", NULL, NULL);
 	if (!window)
 	{
@@ -132,26 +136,38 @@ int main(void)
 	glBindVertexArray(VAO); //bind the VAO
 	glEnableVertexAttribArray(0); //enable vertex attributes
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, NULL);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(float)*6, NULL);
+
+	glEnableVertexAttribArray(1); //enable vertex attributes
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(float)*6, (void*)(3*sizeof(float)));
+
 
 	//create and compile shaders
 	Shader* shader = new Shader(vertex_shader, fragment_shader);
 
 
-	glm::mat4 model;
+	glm::mat4 M = glm::mat4(1.0f);;
 	float rot = 0.0f;
 
 	while (!glfwWindowShouldClose(window))
 	{
-		model = glm::translate(glm::mat4(1.0f), { 0, 0, 0 })
-			* glm::rotate(glm::mat4(1.0f), glm::radians(rot), { 0, 0, 1 })
-			* glm::scale(glm::mat4(1.0f), { 1, 1, 1 });
-		rot += 0.1f;
-		glfwGetCursorPos(window, &mouseX, &mouseY);
 		// clear color and depth buffer
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		
+		//M = glm::rotate(glm::mat4(1.0f), glm::radians(rot), glm::vec3(0.0f, 1.0f, 0.0f));
+		//M = glm::rotate(M, glm::radians(rot), glm::vec3(1.0f, 0.0f, 0.0f));
+		//M = glm::translate(M, glm::vec3(0.0f, 0.0f, 0.0f));
+		//M = glm::scale(M, glm::vec3(0.5f));
+		
+		M = glm::translate(glm::mat4(1.0f), { 0, 0, 0 })
+			* glm::rotate(glm::mat4(1.0f), glm::radians(rot), { 0, 0, 1 })
+			* glm::scale(glm::mat4(1.0f), { 1, 1, 1 });
+		
+		rot += 0.1f;
+		glfwGetCursorPos(window, &mouseX, &mouseY);
+
 		shader->Bind();
-		shader->SetUniformMat4("model", model);
+		shader->SetUniformMat4("model", M);
 		glBindVertexArray(VAO);
 		// draw triangles
 		glDrawArrays(GL_TRIANGLES, 0, 3); //mode,first,count
