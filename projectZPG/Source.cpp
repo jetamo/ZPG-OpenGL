@@ -17,6 +17,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+#include "Shader.h"
+
 
 float points[] = {
 	0.0f, 0.5f, 0.0f,
@@ -27,13 +29,14 @@ float points[] = {
 const char* vertex_shader =
 "#version 330\n"
 "layout(location=0) in vec3 vp;"
+"uniform mat4 model"
 "void main () {"
-"     gl_Position = vec4 (vp, 1.0);"
+"     gl_Position = model * vec4(vp, 1.0f);"
 "}";
 
 const char* fragment_shader =
 "#version 330\n"
-"out vec4 frag_colour;"
+"out vec4 frag_colour"
 "void main () {"
 "     frag_colour = vec4 (0.5, 0.0, 0.5, 1.0);"
 "}";
@@ -43,41 +46,6 @@ static double mouseX = 0;
 static double mouseY = 0;
 
 Application* app = new Application();
-
-static void error_callback(int error, const char* description) { fputs(description, stderr); }
-
-static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
-{
-	if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
-		glfwSetWindowShouldClose(window, GL_TRUE);
-	printf("key_callback [%d,%d,%d,%d] \n", key, scancode, action, mods);
-}
-
-static void window_focus_callback(GLFWwindow* window, int focused) { printf("window_focus_callback \n"); }
-
-static void window_iconify_callback(GLFWwindow* window, int iconified) { printf("window_iconify_callback \n"); }
-
-static void window_size_callback(GLFWwindow* window, int width, int height) {
-	printf("resize %d, %d \n", width, height);
-	glViewport(0, 0, width, height);
-}
-
-//static void cursor_callback(GLFWwindow* window, double x, double y) { printf("%f, %f \n", mouseX, mouseY); }
-
-//static void cursor_callback(GLFWwindow* window, double mouseXPos, double mouseYPos) {
-//	app->cursor_pos_callback(window, mouseXPos, mouseYPos);
-//}
-
-
-//glfwSetCursorPosCallback(window, [](GLFWwindow* window, double mouseXPos, double mouseYPos)
-//	-> void {Application::getInstance()->; cursor_pos_callback(window, mouseXPos, mouseYPos); });
-
-
-static void button_callback(GLFWwindow* window, int button, int action, int mode) {
-	if (action == GLFW_PRESS) printf("button_callback [%d,%d,%d]\n", button, action, mode);
-}
-
-
 
 //GLM test
 
@@ -90,13 +58,10 @@ glm::mat4 View = glm::lookAt(
 	glm::vec3(0, 0, 0), // and looks at the origin
 	glm::vec3(0, 1, 0)  // Head is up (set to 0,-1,0 to look upside-down)
 );
-// Model matrix : an identity matrix (model will be at the origin)
-glm::mat4 Model = glm::mat4(1.0f);
 
 int main(void)
 {
 	GLFWwindow* window;
-	glfwSetErrorCallback(error_callback);
 	if (!glfwInit()) {
 		fprintf(stderr, "ERROR: could not start GLFW3\n");
 		exit(EXIT_FAILURE);
@@ -132,8 +97,28 @@ int main(void)
 	glfwGetFramebufferSize(window, &width, &height);
 	float ratio = width / (float)height;
 	glViewport(0, 0, width, height);
+
 	glfwSetCursorPosCallback(window, [](GLFWwindow* window, double mouseXPos, double mouseYPos)
 		-> void {Application::getInstance().cursor_pos_callback(window, mouseXPos, mouseYPos); });
+
+	glfwSetErrorCallback([](int error, const char* description)
+		-> void {Application::getInstance().error_callback(error, description); });
+
+	glfwSetKeyCallback(window, [](GLFWwindow* window, int key, int scancode, int action, int mods)
+		-> void {Application::getInstance().key_callback(window, key, scancode, action, mods); });
+	
+	glfwSetMouseButtonCallback(window, [](GLFWwindow* window, int button, int action, int mode)
+		-> void {Application::getInstance().button_callback(window, button, action, mode); });
+
+	glfwSetWindowFocusCallback(window, [](GLFWwindow* window, int focused)
+		-> void {Application::getInstance().window_focus_callback(window, focused); });
+
+	glfwSetWindowIconifyCallback(window, [](GLFWwindow* window, int iconified)
+		-> void {Application::getInstance().window_iconify_callback(window, iconified); });
+
+	glfwSetWindowSizeCallback(window, [](GLFWwindow* window, int width, int height)
+		-> void {Application::getInstance().window_size_callback(window, width, height); });
+
 
 	//vertex buffer object (VBO)
 	GLuint VBO = 0;
@@ -150,52 +135,23 @@ int main(void)
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, NULL);
 
 	//create and compile shaders
-	GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
-	glShaderSource(vertexShader, 1, &vertex_shader, NULL);
-	glCompileShader(vertexShader);
-	GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-	glShaderSource(fragmentShader, 1, &fragment_shader, NULL);
-	glCompileShader(fragmentShader);
-	GLuint shaderProgram = glCreateProgram();
-	glAttachShader(shaderProgram, fragmentShader);
-	glAttachShader(shaderProgram, vertexShader);
-	glLinkProgram(shaderProgram);
-
-	GLint status;
-	glGetProgramiv(shaderProgram, GL_LINK_STATUS, &status);
-	if (status == GL_FALSE)
-	{
-		GLint infoLogLength;
-		glGetProgramiv(shaderProgram, GL_INFO_LOG_LENGTH, &infoLogLength);
-		GLchar* strInfoLog = new GLchar[infoLogLength + 1];
-		glGetProgramInfoLog(shaderProgram, infoLogLength, NULL, strInfoLog);
-		fprintf(stderr, "Linker failure: %s\n", strInfoLog);
-		delete[] strInfoLog;
-	}
-
-	//// Sets the key callback
-	glfwSetKeyCallback(window, key_callback);
-	
-	//glfwSetCursorPosCallback(window, cursor_callback);
-	//glfwSetCursorPosCallback(window, Application::);
+	Shader* shader = new Shader(vertex_shader, fragment_shader);
 
 
-	glfwSetMouseButtonCallback(window, button_callback);
-	
-	glfwSetWindowFocusCallback(window, window_focus_callback);
-	
-	glfwSetWindowIconifyCallback(window, window_iconify_callback);
-	
-	glfwSetWindowSizeCallback(window, window_size_callback);
-	
-
+	glm::mat4 model;
+	float rot = 0.0f;
 
 	while (!glfwWindowShouldClose(window))
 	{
+		model = glm::translate(glm::mat4(1.0f), { 0, 0, 0 })
+			* glm::rotate(glm::mat4(1.0f), glm::radians(rot), { 0, 0, 1 })
+			* glm::scale(glm::mat4(1.0f), { 1, 1, 1 });
+		rot += 0.1f;
 		glfwGetCursorPos(window, &mouseX, &mouseY);
 		// clear color and depth buffer
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		glUseProgram(shaderProgram);
+		shader->Bind();
+		shader->SetUniformMat4("model", model);
 		glBindVertexArray(VAO);
 		// draw triangles
 		glDrawArrays(GL_TRIANGLES, 0, 3); //mode,first,count
@@ -208,77 +164,3 @@ int main(void)
 	glfwTerminate();
 	exit(EXIT_SUCCESS);
 }
-
-
-	//GLFWwindow* window;
-	//glfwSetErrorCallback(error_callback);
-	//
-	//if (!glfwInit())
-	//	exit(EXIT_FAILURE);
-	//window = glfwCreateWindow(640, 480, "ZPG", NULL, NULL);
-	//if (!window)
-	//{
-	//	glfwTerminate();
-	//	exit(EXIT_FAILURE);
-	//}
-	//glfwMakeContextCurrent(window);
-	//glfwSwapInterval(1);
-	//
-	//// Sets the key callback
-	//glfwSetKeyCallback(window, key_callback);
-	//
-	//glfwSetCursorPosCallback(window, cursor_callback);
-	//
-	//glfwSetMouseButtonCallback(window, button_callback);
-	//
-	//glfwSetWindowFocusCallback(window, window_focus_callback);
-	//
-	//glfwSetWindowIconifyCallback(window, window_iconify_callback);
-	//
-	//glfwSetWindowSizeCallback(window, window_size_callback);
-	//
-	//
-	//int width, height;
-	//glfwGetFramebufferSize(window, &width, &height);
-	//float ratio = width / (float)height;
-	//glViewport(0, 0, width, height);
-	//
-	//
-	//glMatrixMode(GL_PROJECTION);
-	//glLoadIdentity();
-	//glOrtho(-ratio, ratio, -1.f, 1.f, 1.f, -1.f);
-	//
-	//
-	//while (!glfwWindowShouldClose(window))
-	//{
-	//	glClear(GL_COLOR_BUFFER_BIT);
-	//
-	//	glMatrixMode(GL_MODELVIEW);
-	//	glLoadIdentity();
-	//	glRotatef((float)glfwGetTime() * 50.f, 0.f, 0.f, 1.f);
-	//
-	//	glBegin(GL_TRIANGLES);
-	//	glColor3f(0.f, 0.f, 1.f);
-	//	glVertex3f(-0.5f, -0.5f, 0.f);
-	//	glColor3f(1.f, 0.f, 0.f);
-	//	glVertex3f(0.5f, -0.5f, 0.f);
-	//	glColor3f(1.f, 0.f, 0.f);
-	//	glVertex3f(0.5f, 0.5f, 0.f);
-	//	glEnd();
-	//	//glfwSwapBuffers(window);
-	//
-	//	glBegin(GL_TRIANGLES);
-	//	glColor3f(1.f, 0.f, 0.f);
-	//	glVertex3f(0.5f, 0.5f, 0.f);
-	//	glColor3f(0.f, 0.f, 1.f);
-	//	glVertex3f(-0.5f, 0.5f, 0.f);
-	//	glColor3f(0.f, 0.f, 1.f);
-	//	glVertex3f(-0.5f, -0.5f, 0.f);
-	//	glEnd();
-	//	glfwSwapBuffers(window);
-	//
-	//	glfwPollEvents();
-	//}
-	//glfwDestroyWindow(window);
-	//glfwTerminate();
-	//exit(EXIT_SUCCESS);
