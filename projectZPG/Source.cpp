@@ -1,10 +1,11 @@
 //Include GLFW  
 
+//Include the standard C++ headers  
+#include <stdlib.h>
+#include <stdio.h>
 
 #include "GL/glew.h"
 #include <GLFW/glfw3.h>  
-#include <stdio.h>
-#include "Application.h"
 
 //Include GLM  
 #include <glm/vec3.hpp> // glm::vec3
@@ -13,28 +14,22 @@
 #include <glm/gtc/matrix_transform.hpp> // glm::translate, glm::rotate, glm::scale, glm::perspective
 #include <glm/gtc/type_ptr.hpp> // glm::value_ptr
 
-//Include the standard C++ headers  
-#include <stdlib.h>
-#include <stdio.h>
-
+#include "Application.h"
 #include "Shader.h"
-
-
-float points[] = {
-	 -0.5f, -0.5f, -0.5f, 1.0f, 0.0f, 0.0f,
-      0.5f, -0.5f, -0.5f, 0.0f, 1.0f, 0.0f,
-	  0.5f,  0.5f, -0.5f, 0.0f, 0.0f, 1.0f
-};
+#include "Object.h"
+#include "Camera.h"
 
 const char* vertex_shader =
 "#version 330\n"
 "layout(location=0) in vec3 vp;"
 "layout(location=1) in vec3 color;"
 "uniform mat4 model;"
+"uniform mat4 view;"
+"uniform mat4 projection;"
 "out vec3 v_color;"
 "void main () {"
-"     gl_Position = model * vec4(vp, 1.0f);"
-"	  v_color = color;"
+"     gl_Position = (projection * view * model) * vec4(vp, 1.0f);"
+"      v_color = color;"
 "}";
 
 const char* fragment_shader =
@@ -49,19 +44,12 @@ const char* fragment_shader =
 static double mouseX = 0;
 static double mouseY = 0;
 
+static double oldMouseX = 0;
+static double oldMouseY = 0;
+
 Application* app = new Application();
 
 //GLM test
-
-// Projection matrix : 45° Field of View, 4:3 ratio, display range : 0.1 unit <-> 100 units
-glm::mat4 Projection = glm::perspective(45.0f, 4.0f / 3.0f, 0.01f, 100.0f);
-
-// Camera matrix
-glm::mat4 View = glm::lookAt(
-	glm::vec3(10, 10, 10), // Camera is at (4,3,-3), in World Space
-	glm::vec3(0, 0, 0), // and looks at the origin
-	glm::vec3(0, 1, 0)  // Head is up (set to 0,-1,0 to look upside-down)
-);
 
 int main(void)
 {
@@ -71,12 +59,12 @@ int main(void)
 		exit(EXIT_FAILURE);
 	}
 
-	
+	/*
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-	
+	//*/
 	window = glfwCreateWindow(800, 600, "ZPG", NULL, NULL);
 	if (!window)
 	{
@@ -123,52 +111,34 @@ int main(void)
 	glfwSetWindowSizeCallback(window, [](GLFWwindow* window, int width, int height)
 		-> void {Application::getInstance().window_size_callback(window, width, height); });
 
-
-	//vertex buffer object (VBO)
-	GLuint VBO = 0;
-	glGenBuffers(1, &VBO); // generate the VBO
-	glBindBuffer(GL_ARRAY_BUFFER, VBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(points), points,
-		GL_STATIC_DRAW);
-	//vertex attribute object(VAO)
-	GLuint VAO = 0;
-	glGenVertexArrays(1, &VAO); //generate the VAO
-	glBindVertexArray(VAO); //bind the VAO
-	glEnableVertexAttribArray(0); //enable vertex attributes
-	glBindBuffer(GL_ARRAY_BUFFER, VBO);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(float)*6, NULL);
-
-	glEnableVertexAttribArray(1); //enable vertex attributes
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(float)*6, (void*)(3*sizeof(float)));
-
-
 	//create and compile shaders
 	Shader* shader = new Shader(vertex_shader, fragment_shader);
+	Object* object = new Object();
+	Camera* camera = new Camera();
 
 
-	glm::mat4 M = glm::mat4(1.0f);;
+	glm::mat4 model;
 	float rot = 0.0f;
 
 	while (!glfwWindowShouldClose(window))
 	{
-		// clear color and depth buffer
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		
-		//M = glm::rotate(glm::mat4(1.0f), glm::radians(rot), glm::vec3(0.0f, 1.0f, 0.0f));
-		//M = glm::rotate(M, glm::radians(rot), glm::vec3(1.0f, 0.0f, 0.0f));
-		//M = glm::translate(M, glm::vec3(0.0f, 0.0f, 0.0f));
-		//M = glm::scale(M, glm::vec3(0.5f));
-		
-		M = glm::translate(glm::mat4(1.0f), { 0, 0, 0 })
-			* glm::rotate(glm::mat4(1.0f), glm::radians(rot), { 0, 0, 1 })
-			* glm::scale(glm::mat4(1.0f), { 1, 1, 1 });
-		
+		model = glm::rotate(glm::mat4(1.0f), glm::radians(rot), glm::vec3(0.0f, 1.0f, 0.0f));
+		//model = glm::translate(glm::mat4(1.0f), { 0, 0, 0 })
+		//	* glm::rotate(glm::mat4(1.0f), glm::radians(rot), { 0, 0, 1 })
+		//	* glm::scale(glm::mat4(1.0f), { 1, 1, 1 });
 		rot += 0.1f;
+		oldMouseX = mouseX;
+		oldMouseY = mouseY;
 		glfwGetCursorPos(window, &mouseX, &mouseY);
-
+		// clear color and depth buffer
+		glm::dvec2 delta = (glm::dvec2(oldMouseX, oldMouseY) - glm::dvec2(mouseX, mouseY));
+		camera->changeViewAngle(delta.x);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		object->bind();
 		shader->Bind();
-		shader->SetUniformMat4("model", M);
-		glBindVertexArray(VAO);
+		shader->SetUniform("model", model);
+		shader->SetUniform("view", camera->getView());
+		shader->SetUniform("projection", camera->getProjection());
 		// draw triangles
 		glDrawArrays(GL_TRIANGLES, 0, 3); //mode,first,count
 		// update other events like input handling

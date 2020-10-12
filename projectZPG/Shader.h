@@ -38,8 +38,12 @@ public:
 		glUseProgram(shader);
 	}
 
-	void SetUniformMat4(const char* name, const glm::mat4& matrix) {
+	void SetUniform(const char* name, const glm::mat4& matrix) {
 		glUniformMatrix4fv(glGetUniformLocation(shader, name), 1, GL_FALSE, &matrix[0][0]);
+	}
+
+	void SetUniform(const char* name, const glm::vec3& vector) {
+		glUniform3f(glGetUniformLocation(shader, name), vector.x, vector.y, vector.z);
 	}
 
 
