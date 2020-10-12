@@ -132,15 +132,12 @@ int main(void)
 		glfwGetCursorPos(window, &mouseX, &mouseY);
 		// clear color and depth buffer
 		glm::dvec2 delta = (glm::dvec2(oldMouseX, oldMouseY) - glm::dvec2(mouseX, mouseY));
-		camera->changeViewAngle(delta.x);
+		camera->changeViewAngle(delta.x / 2);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		object->bind();
-		shader->Bind();
+		object->draw(*shader);
 		shader->SetUniform("model", model);
 		shader->SetUniform("view", camera->getView());
 		shader->SetUniform("projection", camera->getProjection());
-		// draw triangles
-		glDrawArrays(GL_TRIANGLES, 0, 3); //mode,first,count
 		// update other events like input handling
 		glfwPollEvents();
 		// put the stuff we’ve been drawing onto the display

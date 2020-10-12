@@ -11,7 +11,9 @@ private:
 	// Camera matrix
 	glm::mat4 View;
 
-	glm::vec3 target = glm::vec3(0, 0, 0);
+	glm::vec3 target = glm::vec3(0, 0, -1);
+
+	glm::vec3 position = glm::vec3(4, 0, -3);
 	
 public:
 	Camera()
@@ -23,8 +25,8 @@ public:
 
 	void setCamera() {
 		View = glm::lookAt(
-			glm::vec3(4, 3, -3), // Camera is at (4,3,-3), in World Space
-			glm::vec3(target.x, target.y, target.z), // and looks at the origin
+			position, // Camera is at (4,3,-3), in World Space
+			glm::vec3(target.x, target.y, target.z) + position, // and looks at the origin
 			glm::vec3(0, 1, 0)  // Head is up (set to 0,-1,0 to look upside-down)
 		);
 	}
@@ -39,7 +41,8 @@ public:
 
 	void changeViewAngle(double deltaX) {
 		glm::mat4 rotationMat = glm::rotate(glm::mat4(1.0f), glm::radians((float)deltaX), { 0, 1, 0 }); //0, 1, 0 == upVector
-		View = View * rotationMat;
+		target = glm::mat3(rotationMat) * target;
+		setCamera();
 	}
 };
 

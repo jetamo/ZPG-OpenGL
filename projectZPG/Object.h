@@ -2,15 +2,19 @@
 
 #include "GL/glew.h"
 #include "GLFW/glfw3.h"
+#include "Shader.h"
 
 class Object
 {
 private:
 	GLuint VAO;
-public:
-	Object() 
-	{
 
+	void bind() {
+		glBindVertexArray(VAO);
+	}
+public:
+	Object()
+	{
 		float points[] = {
 			0.0f,   0.5f, 0.0f, 1.0f, 0.0f, 0.0f,
 			0.5f,  -0.5f, 0.0f, 0.0f, 1.0f, 0.0f,
@@ -35,8 +39,11 @@ public:
 		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 6, (void*)(3 * sizeof(float)));
 	}
 
-	void bind() {
-		glBindVertexArray(VAO);
+	void draw(Shader& shader) {
+		bind();
+		shader.Bind();
+		// draw triangles
+		glDrawArrays(GL_TRIANGLES, 0, 3); //mode,first,count
 	}
 };
 
