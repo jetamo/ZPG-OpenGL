@@ -1,6 +1,6 @@
 #pragma once
 #include "GL/glew.h"
-#include <GLFW/glfw3.h>  
+#include <GLFW/glfw3.h>
 #include <string>
 #include "glm/mat4x4.hpp"
 
@@ -10,12 +10,15 @@ private:
 	unsigned int shader;
 public:
 	Shader(const char* vertex_shader, const char* fragment_shader) {
+
 		unsigned int vertexShader = glCreateShader(GL_VERTEX_SHADER);
 		glShaderSource(vertexShader, 1, &vertex_shader, NULL);
 		glCompileShader(vertexShader);
+
 		unsigned int fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
 		glShaderSource(fragmentShader, 1, &fragment_shader, NULL);
 		glCompileShader(fragmentShader);
+
 		shader = glCreateProgram();
 		glAttachShader(shader, fragmentShader);
 		glAttachShader(shader, vertexShader);

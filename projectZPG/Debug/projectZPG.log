@@ -1,4 +1,6 @@
 ﻿  Object.cpp
   Source.cpp
+C:\dev\pelikan\projectZPG\Camera.h(56,1): warning C4244: '+=': conversion from 'double' to 'float', possible loss of data
+C:\dev\pelikan\projectZPG\Camera.h(57,1): warning C4244: '+=': conversion from 'double' to 'float', possible loss of data
   Generating Code...
   projectZPG.vcxproj -> C:\dev\pelikan\Debug\projectZPG.exe

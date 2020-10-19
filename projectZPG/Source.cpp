@@ -99,6 +99,7 @@ int main(void)
 	glfwSetKeyCallback(window, [](GLFWwindow* window, int key, int scancode, int action, int mods)
 		-> void {Application::getInstance().key_callback(window, key, scancode, action, mods); });
 	
+
 	glfwSetMouseButtonCallback(window, [](GLFWwindow* window, int button, int action, int mode)
 		-> void {Application::getInstance().button_callback(window, button, action, mode); });
 
@@ -131,8 +132,9 @@ int main(void)
 		oldMouseY = mouseY;
 		glfwGetCursorPos(window, &mouseX, &mouseY);
 		// clear color and depth buffer
-		glm::dvec2 delta = (glm::dvec2(oldMouseX, oldMouseY) - glm::dvec2(mouseX, mouseY));
-		camera->changeViewAngle(delta.x / 2);
+		glm::dvec2 delta = glm::dvec2(mouseX, mouseY) - glm::dvec2(oldMouseX, oldMouseY);
+		camera->checkForMovement(window);
+		camera->changeViewAngle(delta.x, -delta.y);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		object->draw(*shader);
 		shader->SetUniform("model", model);
