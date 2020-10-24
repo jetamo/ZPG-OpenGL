@@ -19,26 +19,53 @@
 #include "Object.h"
 #include "Camera.h"
 
+#include "suzi_smooth.h"
+#include "sphere.h"
+#include "plain.h"
+
 const char* vertex_shader =
 "#version 330\n"
 "layout(location=0) in vec3 vp;"
-"layout(location=1) in vec3 color;"
+"layout(location=1) in vec3 vertNormal;"
 "uniform mat4 model;"
 "uniform mat4 view;"
 "uniform mat4 projection;"
-"out vec3 v_color;"
+"uniform vec3 lightPosition;"
+"uniform vec3 camPosition;"
+"out vec3 ex_worldPosition;"
+"out vec3 ex_worldNormal;"
+"out vec3 ex_fragPos;"
+"out vec3 ex_lightPosition;"
+"out vec3 ex_camPosition;"
 "void main () {"
 "     gl_Position = (projection * view * model) * vec4(vp, 1.0f);"
-"      v_color = color;"
+"     mat3 normalMatrix = transpose(inverse(mat3(model)));"
+"	  ex_worldPosition = vec3(model * vec4(vp, 1.0f));"
+"	  ex_worldNormal = normalMatrix * vertNormal;"
+"     ex_lightPosition = lightPosition;"
+"	  ex_camPosition = camPosition;"
 "}";
 
 const char* fragment_shader =
 "#version 330\n"
-"in vec3 v_color;"
+"in vec3 ex_worldPosition;"
+"in vec3 ex_worldNormal;"
+"in vec3 ex_vector;"
+"in vec3 ex_lightPosition;"
+"in vec3 ex_camPosition;"
 "out vec4 frag_colour;"
 "void main () {"
-"     frag_colour = vec4(v_color, 1.0);"
+"     vec3 lightVector = ex_lightPosition - ex_worldPosition;"
+"     lightVector = normalize(lightVector);"
+"     vec3 viewDirection = normalize(ex_camPosition - ex_worldPosition);"
+"     vec3 reflectionVector = reflect(-lightVector, ex_worldNormal);"
+"     vec4 specular = (pow(max(dot(normalize(viewDirection), normalize(reflectionVector)), 0.0), 32)) * vec4(0.385, 0.647, 0.812, 1.0);"
+"     float dot_product = max(dot(lightVector, normalize(ex_worldNormal)), 0.0);"
+"     vec4 diffuse = dot_product * vec4(0.385, 0.647, 0.812, 1.0);"
+"     vec4 ambient = vec4(0.1, 0.1, 0.1, 1.0);"
+"     frag_colour = ambient + diffuse + specular;"
 "}";
+
 
 
 static double mouseX = 0;
@@ -98,7 +125,7 @@ int main(void)
 
 	glfwSetKeyCallback(window, [](GLFWwindow* window, int key, int scancode, int action, int mods)
 		-> void {Application::getInstance().key_callback(window, key, scancode, action, mods); });
-	
+
 
 	glfwSetMouseButtonCallback(window, [](GLFWwindow* window, int button, int action, int mode)
 		-> void {Application::getInstance().button_callback(window, button, action, mode); });
@@ -112,22 +139,56 @@ int main(void)
 	glfwSetWindowSizeCallback(window, [](GLFWwindow* window, int width, int height)
 		-> void {Application::getInstance().window_size_callback(window, width, height); });
 
+	const float cubePoints[] = { -0.5f, -0.5f, 0.5f, 1.0f, 0.0f, 0.0f,
+		0.5f, -0.5f, 0.5f, 0.0f, 1.0f, 0.0f,
+		-0.5f, 0.5f, 0.5f, 0.0f, 0.0f, 1.0f,
+		0.5f, 0.5f, 0.5f, 1.0f, 0.0f, 0.0f,
+		0.5f, -0.5f, 0.5f, 0.0f, 1.0f, 0.0f,
+		-0.5f, 0.5f, 0.5f, 0.0f, 0.0f, 1.0f,
+
+		-0.5f, -0.5f, -0.5f, 1.0f, 0.0f, 0.0f,
+		0.5f, -0.5f, -0.5f, 0.0f, 1.0f, 0.0f,
+		-0.5f, 0.5f, -0.5f, 0.0f, 0.0f, 1.0f,
+		0.5f, 0.5f, -0.5f, 1.0f, 0.0f, 0.0f,
+		0.5f, -0.5f, -0.5f, 0.0f, 1.0f, 0.0f,
+		-0.5f, 0.5f, -0.5f, 0.0f, 0.0f, 1.0f,
+
+		-0.5f, -0.5f, 0.5f, 1.0f, 0.0f, 0.0f,
+		-0.5f, 0.5f, 0.5f, 0.0f, 1.0f, 0.0f,
+		-0.5f, -0.5f, -0.5f, 0.0f, 0.0f, 1.0f,
+		-0.5f, 0.5f, -0.5f, 1.0f, 0.0f, 0.0f,
+		-0.5f, 0.5f, 0.5f, 0.0f, 1.0f, 0.0f,
+		-0.5f, -0.5f, -0.5f, 0.0f, 0.0f, 1.0f,
+
+		0.5f, -0.5f, 0.5f, 1.0f, 0.0f, 0.0f,
+		0.5f, 0.5f, 0.5f, 0.0f, 1.0f, 0.0f,
+		0.5f, -0.5f, -0.5f, 0.0f, 0.0f, 1.0f,
+		0.5f, 0.5f, -0.5f, 1.0f, 0.0f, 0.0f,
+		0.5f, 0.5f, 0.5f, 0.0f, 1.0f, 0.0f,
+		0.5f, -0.5f, -0.5f, 0.0f, 0.0f, 1.0f, };
+
 	//create and compile shaders
 	Shader* shader = new Shader(vertex_shader, fragment_shader);
-	Object* object = new Object();
+	Object* cube = new Object(cubePoints, sizeof(cubePoints));
+	Object* suzi = new Object(suziSmooth, sizeof(suzi));
+	Object* circle3d = new Object(sphere, sizeof(sphere));
 	Camera* camera = new Camera();
+
+	Application::setCamera(*camera);
+
+	camera->registerObserver(*shader);
 
 
 	glm::mat4 model;
 	float rot = 0.0f;
 
+	glEnable(GL_DEPTH_TEST);
+
+
 	while (!glfwWindowShouldClose(window))
 	{
-		model = glm::rotate(glm::mat4(1.0f), glm::radians(rot), glm::vec3(0.0f, 1.0f, 0.0f));
-		//model = glm::translate(glm::mat4(1.0f), { 0, 0, 0 })
-		//	* glm::rotate(glm::mat4(1.0f), glm::radians(rot), { 0, 0, 1 })
-		//	* glm::scale(glm::mat4(1.0f), { 1, 1, 1 });
-		rot += 0.1f;
+
+
 		oldMouseX = mouseX;
 		oldMouseY = mouseY;
 		glfwGetCursorPos(window, &mouseX, &mouseY);
@@ -136,10 +197,27 @@ int main(void)
 		camera->checkForMovement(window);
 		camera->changeViewAngle(delta.x, -delta.y);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		object->draw(*shader);
-		shader->SetUniform("model", model);
-		shader->SetUniform("view", camera->getView());
-		shader->SetUniform("projection", camera->getProjection());
+		model = glm::translate(glm::mat4(1.0f), glm::vec3(1.f, 0.f, 0.f));
+		model = glm::scale(model, glm::vec3(0.5, 0.5, 0.5));
+		shader->setUniform("model", model);
+		circle3d->draw(*shader);
+
+		model = glm::translate(glm::mat4(1.0f), glm::vec3(-1.f, 0.f, 0.f));
+		model = glm::scale(model, glm::vec3(0.5, 0.5, 0.5));
+		shader->setUniform("model", model);
+		circle3d->draw(*shader);
+
+		model = glm::translate(glm::mat4(1.0f), glm::vec3(0.f, 0.f, 1.f));
+		model = glm::scale(model, glm::vec3(0.5, 0.5, 0.5));
+		shader->setUniform("model", model);
+		circle3d->draw(*shader);
+
+		model = glm::translate(glm::mat4(1.0f), glm::vec3(0.f, 0.f, -1.f));
+		model = glm::scale(model, glm::vec3(0.5, 0.5, 0.5));
+		shader->setUniform("model", model);
+		circle3d->draw(*shader);
+
+		shader->setUniform("lightPosition", glm::vec3(0.0f, 0.0f, 0.0f));
 		// update other events like input handling
 		glfwPollEvents();
 		// put the stuff we’ve been drawing onto the display

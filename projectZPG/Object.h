@@ -3,6 +3,7 @@
 #include "GL/glew.h"
 #include "GLFW/glfw3.h"
 #include "Shader.h"
+#include <iostream>
 
 class Object
 {
@@ -12,44 +13,20 @@ private:
 	void bind() {
 		glBindVertexArray(VAO);
 	}
+
+	int pointsSize;
 public:
-	Object()
+	//float* points;
+	Object(const float* _points, int _pointsSize)
 	{
-		float points[] = {
-		   -0.5f,  -0.5f, 0.5f, 1.0f, 0.0f, 0.0f,
-			0.5f,  -0.5f, 0.5f, 0.0f, 1.0f, 0.0f,
-		   -0.5f,   0.5f, 0.5f, 0.0f, 0.0f, 1.0f,
-		    0.5f,   0.5f, 0.5f, 1.0f, 0.0f, 0.0f,
-		    0.5f,  -0.5f, 0.5f, 0.0f, 1.0f, 0.0f,
-		   -0.5f,   0.5f, 0.5f, 0.0f, 0.0f, 1.0f,
-
-		   -0.5f,  -0.5f,-0.5f, 1.0f, 0.0f, 0.0f,
-			0.5f,  -0.5f,-0.5f, 0.0f, 1.0f, 0.0f,
-		   -0.5f,   0.5f,-0.5f, 0.0f, 0.0f, 1.0f,
-			0.5f,   0.5f,-0.5f, 1.0f, 0.0f, 0.0f,
-			0.5f,  -0.5f,-0.5f, 0.0f, 1.0f, 0.0f,
-		   -0.5f,   0.5f,-0.5f, 0.0f, 0.0f, 1.0f,
-
-		   -0.5f,  -0.5f, 0.5f, 1.0f, 0.0f, 0.0f,
-		   -0.5f,   0.5f, 0.5f, 0.0f, 1.0f, 0.0f,
-		   -0.5f,  -0.5f,-0.5f, 0.0f, 0.0f, 1.0f,
-		   -0.5f,   0.5f,-0.5f, 1.0f, 0.0f, 0.0f,
-		   -0.5f,   0.5f, 0.5f, 0.0f, 1.0f, 0.0f,
-		   -0.5f,  -0.5f,-0.5f, 0.0f, 0.0f, 1.0f,
-
-		    0.5f,  -0.5f, 0.5f, 1.0f, 0.0f, 0.0f,
-		    0.5f,   0.5f, 0.5f, 0.0f, 1.0f, 0.0f,
-		    0.5f,  -0.5f,-0.5f, 0.0f, 0.0f, 1.0f,
-		    0.5f,   0.5f,-0.5f, 1.0f, 0.0f, 0.0f,
-		    0.5f,   0.5f, 0.5f, 0.0f, 1.0f, 0.0f,
-		    0.5f,  -0.5f,-0.5f, 0.0f, 0.0f, 1.0f,
-		};
+		pointsSize = _pointsSize;
+		const float* points = _points;
 
 		//vertex buffer object (VBO)
 		GLuint VBO = 0;
 		glGenBuffers(1, &VBO); // generate the VBO
 		glBindBuffer(GL_ARRAY_BUFFER, VBO);
-		glBufferData(GL_ARRAY_BUFFER, sizeof(points), points,
+		glBufferData(GL_ARRAY_BUFFER, pointsSize, &points[0],
 			GL_STATIC_DRAW);
 		//vertex attribute object(VAO)
 		VAO = 0;
@@ -65,9 +42,9 @@ public:
 
 	void draw(Shader& shader) {
 		bind();
-		shader.Bind();
+		shader.bind();
 		// draw triangles
-		glDrawArrays(GL_TRIANGLES, 0, 36*4/sizeof(float)); //mode,first,count
+		glDrawArrays(GL_TRIANGLES, 0, pointsSize); //mode,first,count
 	}
 };
 

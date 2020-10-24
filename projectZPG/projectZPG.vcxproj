@@ -132,14 +132,20 @@
     <ClCompile Include="Application.cpp" />
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="Object.cpp" />
+    <ClCompile Include="Observer.cpp" />
     <ClCompile Include="Shader.cpp" />
     <ClCompile Include="Source.cpp" />
+    <ClCompile Include="Subject.cpp" />
+    <ClCompile Include="Suzi.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Application.h" />
     <ClInclude Include="Camera.h" />
     <ClInclude Include="Object.h" />
+    <ClInclude Include="Observer.h" />
     <ClInclude Include="Shader.h" />
+    <ClInclude Include="Subject.h" />
+    <ClInclude Include="Suzi.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

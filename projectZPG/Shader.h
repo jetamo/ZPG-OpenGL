@@ -3,8 +3,9 @@
 #include <GLFW/glfw3.h>
 #include <string>
 #include "glm/mat4x4.hpp"
+#include "Observer.h"
 
-class Shader
+class Shader : public Observer
 {
 private:
 	unsigned int shader;
@@ -37,18 +38,22 @@ public:
 		}
 	}
 
-	void Bind() {
+	void bind() {
 		glUseProgram(shader);
 	}
 
-	void SetUniform(const char* name, const glm::mat4& matrix) {
+	void setUniform(const char* name, const glm::mat4& matrix) {
 		glUniformMatrix4fv(glGetUniformLocation(shader, name), 1, GL_FALSE, &matrix[0][0]);
 	}
 
-	void SetUniform(const char* name, const glm::vec3& vector) {
+	void setUniform(const char* name, const glm::vec3& vector) {
 		glUniform3f(glGetUniformLocation(shader, name), vector.x, vector.y, vector.z);
 	}
 
-
+	void update(glm::mat4 viewMatrix, glm::mat4 projectionMatrix, glm::vec3 position) {
+		setUniform("view", viewMatrix);
+		setUniform("projection", projectionMatrix);
+		setUniform("camPosition", position);
+	}
 };
 

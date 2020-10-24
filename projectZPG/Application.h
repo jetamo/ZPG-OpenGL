@@ -1,16 +1,17 @@
 #pragma once
-#include <GLFW\glfw3.h>
 #include <stdio.h>
 #include "Camera.h"
+#include <GLFW\glfw3.h>
 
 class Application
 {
 
 private:
     static Application instance;
-    
 public:
     Application() {};
+
+    static Camera* camera;
 
     static Application& getInstance()
     {
@@ -20,7 +21,7 @@ public:
     void cursor_pos_callback(GLFWwindow* window, double mouseX, double mouseY) {
         double x, y;
         glfwGetCursorPos(window, &x, &y);
-        printf("cursor_pos_callback %d, %d \n", (int)x, (int)y);
+        //printf("cursor_pos_callback %d, %d \n", (int)x, (int)y);
     }
     
     static void window_size_callback(GLFWwindow* window, int width, int height) {
@@ -36,7 +37,8 @@ public:
     {
         if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
             glfwSetWindowShouldClose(window, GL_TRUE);
-        printf("key_callback [%d,%d,%d,%d] \n", key, scancode, action, mods);
+        //printf("key_callback [%d,%d,%d,%d] \n", key, scancode, action, mods);
+        //Application::camera->checkForMovement(window);
     }
 
     static void error_callback(int error, const char* description) { fputs(description, stderr); }
@@ -44,6 +46,8 @@ public:
     static void button_callback(GLFWwindow* window, int button, int action, int mode) {
         if (action == GLFW_PRESS) printf("button_callback [%d,%d,%d]\n", button, action, mode);
     }
-};
 
-Application Application::instance;
+    static void setCamera(Camera& cam) {
+        camera = &cam;
+    }
+};
