@@ -35,7 +35,7 @@ public:
 	}
 
 	void setCamera() {
-		View = glm::lookAt(
+		View = glm::lookAt(	
 			position, // Camera is at (4,3,-3), in World Space
 			glm::vec3(target.x, target.y, target.z) + position, // and looks at the origin
 			glm::vec3(0, 1, 0)  // Head is up (set to 0,-1,0 to look upside-down)
@@ -59,29 +59,11 @@ public:
 
 		fi += deltaX;
 		psi += deltaY;
-		//if (deltaX != 0)
-		//{
-		//	fi += deltaX / glm::abs(deltaX);
-		//	std::cout << fi << "; " << psi << std::endl;
-		//}
-		//if (deltaY != 0)
-		//{
-		//	psi += deltaY / glm::abs(deltaY);\
-		//		std::cout << fi << "; " << psi << std::endl;
-		//}
 
-		std::cout << fi << "; " << psi << std::endl;
 		if (psi > 89.0f)
 			psi = 89.0f;
 		if (psi < -89.0f)
 			psi = -89.0f;
-
-		//if (glm::sin(glm::radians((float)psi)) < -0.9999f)
-		//{
-		//	psi = 999;
-		//}
-		//if (glm::sin(glm::radians((float)psi)) > 0.9999f)
-		//	psi = 999;
 
 		target.x = glm::cos(glm::radians((float)fi));
 		target.z = glm::sin(glm::radians((float)fi));

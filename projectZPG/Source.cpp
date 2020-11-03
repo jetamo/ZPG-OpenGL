@@ -184,10 +184,11 @@ int main(void)
 
 	glEnable(GL_DEPTH_TEST);
 
+	shader->setUniform("lightPosition", glm::vec3(0.0f, 0.0f, 0.0f));
 
 	while (!glfwWindowShouldClose(window))
 	{
-
+		
 
 		oldMouseX = mouseX;
 		oldMouseY = mouseY;
@@ -217,7 +218,6 @@ int main(void)
 		shader->setUniform("model", model);
 		circle3d->draw(*shader);
 
-		shader->setUniform("lightPosition", glm::vec3(0.0f, 0.0f, 0.0f));
 		// update other events like input handling
 		glfwPollEvents();
 		// put the stuff we’ve been drawing onto the display
