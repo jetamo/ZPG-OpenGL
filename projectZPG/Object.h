@@ -3,22 +3,23 @@
 #include "GL/glew.h"
 #include "GLFW/glfw3.h"
 #include "Shader.h"
+#include <glm/gtc/matrix_transform.hpp> // glm::translate, glm::rotate, glm::scale, glm::perspective
 #include <iostream>
 
 class Object
 {
 private:
 	GLuint VAO;
-
-	void bind() {
-		glBindVertexArray(VAO);
-	}
-
-	int pointsSize;
+	int id;
 public:
+	int pointsSize;
+	Shader* shader;
+	glm::mat4 transform = glm::mat4(1.0f);
 	//float* points;
-	Object(const float* _points, int _pointsSize)
+	Object(const float* _points, int _pointsSize, Shader* _shader, int _id)
 	{
+		id = _id;
+		shader = _shader;
 		pointsSize = _pointsSize;
 		const float* points = _points;
 
@@ -40,11 +41,22 @@ public:
 		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 6, (void*)(3 * sizeof(float)));
 	}
 
-	void draw(Shader& shader) {
-		bind();
-		shader.bind();
-		// draw triangles
-		glDrawArrays(GL_TRIANGLES, 0, pointsSize); //mode,first,count
+	void bind() {
+		glBindVertexArray(VAO);
+	}
+
+	void setPosition(glm::vec3 newPosition)
+	{
+		transform = glm::translate(glm::mat4(1.0), newPosition);
+	}
+	 
+	void rotate(float fi, glm::vec3 axis)
+	{
+		transform = glm::rotate(transform, glm::radians(fi), axis);
+	}
+
+	int getId() {
+		return id;
 	}
 };
 
