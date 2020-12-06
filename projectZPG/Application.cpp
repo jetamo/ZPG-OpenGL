@@ -15,6 +15,7 @@
 #include "CallbacksHandler.h"
 #include "Shader.h"
 #include "Object.h"
+#include "TextureObject.h"
 #include "Camera.h"
 #include "Light.h"
 #include "Renderer.h"
@@ -33,47 +34,97 @@ void Application::Start()
 		"#version 330\n"
 		"layout(location=0) in vec3 vp;"
 		"layout(location=1) in vec3 vertNormal;"
+		"layout(location=2) in vec2 in_uv;"
 		"uniform mat4 model;"
 		"uniform mat4 view;"
 		"uniform mat4 projection;"
-		"uniform vec3 lightPosition;"
-		"uniform vec3 lightColor;"
 		"uniform vec3 camPosition;"
 		"out vec3 ex_worldPosition;"
 		"out vec3 ex_worldNormal;"
 		"out vec3 ex_fragPos;"
-		"out vec3 ex_lightPosition;"
 		"out vec3 ex_camPosition;"
-		"out vec3 ex_lightColor;"
+		"out vec2 uv;"
 		"void main () {"
 		"     gl_Position = (projection * view * model) * vec4(vp, 1.0f);"
 		"     mat3 normalMatrix = transpose(inverse(mat3(model)));"
 		"	  ex_worldPosition = vec3(model * vec4(vp, 1.0f));"
 		"	  ex_worldNormal = normalMatrix * vertNormal;"
-		"     ex_lightPosition = lightPosition;"
-		"     ex_lightColor = lightColor;"
 		"	  ex_camPosition = camPosition;"
+		"	  uv = in_uv;"
 		"}";
+
 
 	const char* fragment_shader =
 		"#version 330\n"
+		"const int nrOfLights = 1;"
+		"struct light"
+		"{"
+		"vec3 lightPos;"
+		"vec3 lightColor;"
+		"vec3 direction;"
+		"float radius;"
+		"int type;"
+		"};"
+		"uniform light lights[nrOfLights];"
+		"uniform vec3 camDirection;"
+		"uniform sampler2D textureUnitID;"
 		"in vec3 ex_worldPosition;"
 		"in vec3 ex_worldNormal;"
 		"in vec3 ex_vector;"
-		"in vec3 ex_lightPosition;"
-		"in vec3 ex_lightColor;"
 		"in vec3 ex_camPosition;"
+		"in vec2 uv;"
 		"out vec4 frag_colour;"
 		"void main () {"
-		"     vec3 lightVector = ex_lightPosition - ex_worldPosition;"
-		"     lightVector = normalize(lightVector);"
-		"     vec3 viewDirection = normalize(ex_camPosition - ex_worldPosition);"
-		"     vec3 reflectionVector = reflect(-lightVector, ex_worldNormal);"
-		"     vec4 specular = (pow(max(dot(normalize(viewDirection), normalize(reflectionVector)), 0.0), 32)) * vec4(0.385, 0.647, 0.812, 1.0);"
-		"     float dot_product = max(dot(lightVector, normalize(ex_worldNormal)), 0.0);"
-		"     vec4 diffuse = dot_product * vec4(ex_lightColor, 1.0);"
-		"     vec4 ambient = vec4(0.1, 0.1, 0.1, 1.0);"
-		"     frag_colour = ambient + diffuse + specular;"
+		"     frag_colour = vec4(0.0, 0.0, 0.0, 0.0);"
+		"	  for(int i = 0; i < nrOfLights; i++)"
+		"{"
+		"		if(lights[i].type == 1)"
+		"		{"
+		"			vec3 lightVector = lights[i].lightPos - ex_worldPosition;"
+		"			lightVector = normalize(lightVector);"
+		"			vec3 viewDirection = normalize(ex_camPosition - ex_worldPosition);"
+		"			vec3 reflectionVector = reflect(-lightVector, ex_worldNormal);"
+		"			vec4 specular = (pow(max(dot(normalize(viewDirection), normalize(reflectionVector)), 0.0), 32)) * vec4(0.385, 0.647, 0.812, 1.0);"
+		"			float dot_product = max(dot(lightVector, normalize(ex_worldNormal)), 0.0);"
+		"			vec4 diffuse = dot_product * vec4(lights[i].lightColor, 1.0);"
+		"			frag_colour +=  diffuse + specular;"
+		"		}"
+		"		else if(lights[i].type == 2)"
+		"		{"
+		"			vec3 lightVector = ex_camPosition - ex_worldPosition;"
+		"			lightVector = normalize(lightVector);"
+		//"					vec3 lightVector = lights[i].lightPos - ex_worldPosition;"
+		//"					lightVector = normalize(lightVector);"
+		//		"			if(dot(lightVector, normalize(lights[i].lightPos - vec3(0, 0, 0))) > lights[i].radius)"		
+		"			if(dot(lightVector, normalize(camDirection)) > 0.99f)"
+		"			{"
+		"				vec3 viewDirection = normalize(ex_camPosition - ex_worldPosition);"
+		"				vec3 reflectionVector = reflect(-lightVector, ex_worldNormal);"
+		"				vec4 specular = (pow(max(dot(normalize(viewDirection), normalize(reflectionVector)), 0.0), 32)) * vec4(0.385, 0.647, 0.812, 1.0);"
+		"				float dot_product = max(dot(lightVector, normalize(ex_worldNormal)), 0.0);"
+		"				vec4 diffuse = dot_product * vec4(lights[i].lightColor, 1.0) * texture(textureUnitID, uv);"
+		"				frag_colour +=  diffuse + specular;"
+		"			}"
+		"			else"
+		"				frag_colour = vec4(0.0, 0.0, 0.0, 1.0);"
+		"		}"
+		"		else if(lights[i].type == 3)"
+		"		{"
+		"			vec3 lightVector = ex_camPosition - ex_worldPosition; "
+		"			lightVector = normalize(lightVector);"
+		"			vec3 viewDirection = normalize(ex_camPosition - ex_worldPosition);"
+		"			vec3 reflectionVector = reflect(-lightVector, ex_worldNormal);"
+		"			vec4 specular = (pow(max(dot(normalize(viewDirection), normalize(reflectionVector)), 0.0), 32)) * vec4(0.385, 0.647, 0.812, 1.0);"
+		"			float dot_product = max(dot(lightVector, normalize(ex_worldNormal)), 0.0);"
+		"			vec4 diffuse = dot_product * vec4(lights[i].lightColor, 1.0);"
+		"			frag_colour +=  diffuse + specular;"
+		"		}"
+		"}"
+
+		"vec4 ambient = vec4(0.1, 0.1, 0.1, 1.0) * texture(textureUnitID, uv); "
+		"frag_colour += ambient;"
+		//"frag_colour = texture(textureUnitID, uv);"
+		//"     frag_colour += vec4(0.1, 0.0, 0.0, 1.0);"
 		"}";
 
 
@@ -166,21 +217,79 @@ void Application::Start()
 		0.5f, 0.5f, 0.5f, 0.0f, 1.0f, 0.0f,
 		0.5f, -0.5f, -0.5f, 0.0f, 0.0f, 1.0f, };
 
+	const float TcubePoints[] = {
+		-1.0f,-1.0f,-1.0f, 0.3f, 0.0f, 0.0f,0.000059f, 1.0f - 0.000004f,
+		-1.0f,-1.0f, 1.0f, 0.3f, 0.0f, 0.0f,0.000103f, 1.0f - 0.336048f,
+		-1.0f, 1.0f, 1.0f, 0.3f, 0.0f, 0.0f,0.335973f, 1.0f - 0.335903f,
+		1.0f, 1.0f,-1.0f,  0.3f, 0.0f, 0.0f,1.000023f, 1.0f - 0.000013f,
+		-1.0f,-1.0f,-1.0f, 0.3f, 0.0f, 0.0f,0.667979f, 1.0f - 0.335851f,
+		-1.0f, 1.0f,-1.0f, 0.3f, 0.0f, 0.0f,0.999958f, 1.0f - 0.336064f,
+		1.0f,-1.0f, 1.0f,  0.3f, 0.0f, 0.0f,0.667979f, 1.0f - 0.335851f,
+		-1.0f,-1.0f,-1.0f, 0.3f, 0.0f, 0.0f,0.336024f, 1.0f - 0.671877f,
+		1.0f,-1.0f,-1.0f,  0.3f, 0.0f, 0.0f,0.667969f, 1.0f - 0.671889f,
+		1.0f, 1.0f,-1.0f,  0.3f, 0.0f, 0.0f,1.000023f, 1.0f - 0.000013f,
+		1.0f,-1.0f,-1.0f,  0.3f, 0.0f, 0.0f,0.668104f, 1.0f - 0.000013f,
+		-1.0f,-1.0f,-1.0f, 0.3f, 0.0f, 0.0f,0.667979f, 1.0f - 0.335851f,
+		-1.0f,-1.0f,-1.0f, 0.3f, 0.0f, 0.0f,0.000059f, 1.0f - 0.000004f,
+		-1.0f, 1.0f, 1.0f, 0.3f, 0.0f, 0.0f,0.335973f, 1.0f - 0.335903f,
+		-1.0f, 1.0f,-1.0f, 0.3f, 0.0f, 0.0f,0.336098f, 1.0f - 0.000071f,
+		1.0f,-1.0f, 1.0f,  0.3f, 0.0f, 0.0f,0.667979f, 1.0f - 0.335851f,
+		-1.0f,-1.0f, 1.0f, 0.3f, 0.0f, 0.0f,0.335973f, 1.0f - 0.335903f,
+		-1.0f,-1.0f,-1.0f, 0.3f, 0.0f, 0.0f,0.336024f, 1.0f - 0.671877f,
+		-1.0f, 1.0f, 1.0f, 0.3f, 0.0f, 0.0f,1.000004f, 1.0f - 0.671847f,
+		-1.0f,-1.0f, 1.0f, 0.3f, 0.0f, 0.0f,0.999958f, 1.0f - 0.336064f,
+		1.0f,-1.0f, 1.0f,  0.3f, 0.0f, 0.0f,0.667979f, 1.0f - 0.335851f,
+		1.0f, 1.0f, 1.0f,  0.3f, 0.0f, 0.0f,0.668104f, 1.0f - 0.000013f,
+		1.0f,-1.0f,-1.0f,  0.3f, 0.0f, 0.0f,0.335973f, 1.0f - 0.335903f,
+		1.0f, 1.0f,-1.0f,  0.3f, 0.0f, 0.0f,0.667979f, 1.0f - 0.335851f,
+		1.0f,-1.0f,-1.0f,  0.3f, 0.0f, 0.0f,0.335973f, 1.0f - 0.335903f,
+		1.0f, 1.0f, 1.0f,  0.3f, 0.0f, 0.0f,0.668104f, 1.0f - 0.000013f,
+		1.0f,-1.0f, 1.0f,  0.3f, 0.0f, 0.0f,0.336098f, 1.0f - 0.000071f,
+		1.0f, 1.0f, 1.0f,  0.3f, 0.0f, 0.0f,0.000103f, 1.0f - 0.336048f,
+		1.0f, 1.0f,-1.0f,  0.3f, 0.0f, 0.0f,0.000004f, 1.0f - 0.671870f,
+		-1.0f, 1.0f,-1.0f, 0.3f, 0.0f, 0.0f,0.336024f, 1.0f - 0.671877f,
+		1.0f, 1.0f, 1.0f,  0.3f, 0.0f, 0.0f,0.000103f, 1.0f - 0.336048f,
+		-1.0f, 1.0f,-1.0f, 0.3f, 0.0f, 0.0f,0.336024f, 1.0f - 0.671877f,
+		-1.0f, 1.0f, 1.0f, 0.3f, 0.0f, 0.0f,0.335973f, 1.0f - 0.335903f,
+		1.0f, 1.0f, 1.0f,  0.3f, 0.0f, 0.0f,0.667969f, 1.0f - 0.671889f,
+		-1.0f, 1.0f, 1.0f, 0.3f, 0.0f, 0.0f,1.000004f, 1.0f - 0.671847f,
+		1.0f,-1.0f, 1.0f,  0.3f, 0.0f, 0.0f,0.667979f, 1.0f - 0.335851f
+	};
+
+	const float plain[] = {
+		//vrchol, normála, uv souřadnice
+		1.0f, 0.0f, 1.0f,   0.0f, 1.0f, 0.0f,   0.0f, 0.0f,
+		1.0f, 0.0f,-1.0f,   0.0f, 1.0f, 0.0f,   1.0f, 0.0f,
+	   -1.0f, 0.0f,-1.0f,   0.0f, 1.0f, 0.0f,   1.0f, 1.0f,
+
+	   -1.0f, 0.0f, 1.0f,   0.0f, 1.0f, 0.0f,   0.0f, 1.0f,
+		1.0f, 0.0f, 1.0f,   0.0f, 1.0f, 0.0f,   0.0f, 0.0f,
+	   -1.0f, 0.0f,-1.0f,   0.0f, 1.0f, 0.0f,   1.0f, 1.0f
+	};
+
 	//create and compile shaders
 	Shader* shader = new Shader(vertex_shader, fragment_shader);
-	Object* cube = new Object(cubePoints, sizeof(cubePoints), shader, 1);
-	Object* suzi = new Object(suziSmooth, sizeof(suziSmooth), shader, 2);
-	Object* circle3d = new Object(sphere, sizeof(sphere), shader, 3);
+	Shader* shaderdvojka = new Shader(vertex_shader, fragment_shader);
+	//Object* cube = new Object(cubePoints, sizeof(cubePoints), shader, 1);
+	//Object* suzi = new Object(suziSmooth, sizeof(suziSmooth), shader, 2);
+	//Object* circle3d = new Object(sphere, sizeof(sphere), shader, 3);
+
+	TextureObject* skybox = new TextureObject(TcubePoints, sizeof(TcubePoints), shader, 4);
+	TextureObject* plainO = new TextureObject(plain, sizeof(plain), shaderdvojka, 4);
+
+	//TextureObject* plainO = new TextureObject(plain, sizeof(plain), shader, 4);
 
 	//cube->setPosition(glm::vec3(-1.f, 0.f, 0.f));
-	suzi->setPosition(glm::vec3(2.f, 0.f, 0.f));
-	suzi->rotate(20, glm::vec3(0.f, 1.f, 0.f));
-	circle3d->setPosition(glm::vec3(-2.f, 0.f, 0.f));
+	//suzi->setPosition(glm::vec3(2.f, 0.f, 0.f));
+	//suzi->rotate(20, glm::vec3(0.f, 1.f, 0.f));
+	//circle3d->setPosition(glm::vec3(-2.f, 0.f, 0.f));
+	plainO->setPosition(glm::vec3(0.f, 0.f, 0.f));
 
 	std::vector<Object*> objects;
 	//objects.push_back(cube);
-	objects.push_back(suzi);
-	objects.push_back(circle3d);
+	//objects.push_back(suzi);
+	//objects.push_back(circle3d);
+	objects.push_back(plainO);
 
 	//přidání ID do stencil bufferu
 	glEnable(GL_STENCIL_TEST);
@@ -195,6 +304,10 @@ void Application::Start()
 	CallbacksHandler::setCamera(*camera);
 
 	camera->registerObserver(*shader);
+	camera->registerObserver(*shaderdvojka);
+
+	shader->createTexture("test.png");
+	shaderdvojka->createTexture("kostka.png");
 
 
 	glm::mat4 model;
@@ -203,12 +316,23 @@ void Application::Start()
 	glEnable(GL_DEPTH_TEST);
 
 
+	//shader->bindTexture();
 
 
 	while (!glfwWindowShouldClose(window))
 	{
-		shader->setUniform("lightPosition", glm::vec3(20.0f, 20.f, 0.f));
-		shader->setUniform("lightColor", glm::vec3(0.1f, 1.f, 0.1f));
+		shader->setUniform("lights[0].lightPos", glm::vec3(2.f, 0.f, 5.f));
+		shader->setUniform("lights[0].lightColor", glm::vec3(0.1f, 1.f, 0.1f));
+		shader->setUniform("lights[0].radius", glm::cos(glm::radians(12.5f)));
+		shader->setUniform("lights[0].type", 2);
+		shaderdvojka->setUniform("lights[0].lightPos", glm::vec3(2.f, 0.f, 5.f));
+		shaderdvojka->setUniform("lights[0].lightColor", glm::vec3(0.1f, 1.f, 0.1f));
+		shaderdvojka->setUniform("lights[0].radius", glm::cos(glm::radians(12.5f)));
+		shaderdvojka->setUniform("lights[0].type", 2);
+		//shader->setUniform("lights[1].lightPos", glm::vec3(10.0f, 20.f, 0.f));
+		//shader->setUniform("lights[1].lightColor", glm::vec3(1.f, 0.1f, 0.1f));
+		//shader->setUniform("lights[1].radius", glm::cos(glm::radians(5.0f)));
+		//shader->setUniform("lights[1].type", 2);
 
 
 		oldMouseX = mouseX;
@@ -220,9 +344,19 @@ void Application::Start()
 		camera->changeViewAngle(delta.x, -delta.y);
 		glClearStencil(0);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		
+
+
+		skybox->setPosition(camera->getPosition()); 
+		glDisable(GL_DEPTH_TEST);
+		//shaderdvojka->bindTexture("kostka.png");
+		shaderdvojka->bindTexture();
+		renderer->draw(skybox);
+		glEnable(GL_DEPTH_TEST);
+		shader->bindTexture();
 		for (Object* object : objects) {
 			glStencilFunc(GL_ALWAYS, object->getId(), 0xFF);
+			//object->transform = glm::scale(glm::mat4(1.0f), { 5, 5, 5 });
+			//shader->bindTexture("test.png");
 			renderer->draw(object);
 		}
 		if (clicked)

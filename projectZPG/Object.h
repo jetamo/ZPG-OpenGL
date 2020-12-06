@@ -6,9 +6,14 @@
 #include <glm/gtc/matrix_transform.hpp> // glm::translate, glm::rotate, glm::scale, glm::perspective
 #include <iostream>
 
+
+
+//SOIL_load_OGL_texture("test.png", SOIL_LOAD_RGBA, SOIL_CREATE_NEW_ID, SOIL_FLAG_INVERT_Y);
+
 class Object
 {
 private:
+protected:
 	GLuint VAO;
 	int id;
 public:

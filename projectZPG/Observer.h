@@ -5,6 +5,6 @@
 class Observer
 {
 public:
-	virtual void update(glm::mat4 viewMatrix, glm::mat4 projectionMatrix, glm::vec3 camPosition) = 0;
+	virtual void update(glm::mat4 viewMatrix, glm::mat4 projectionMatrix, glm::vec3 camPosition, glm::vec3 direction) = 0;
 };
 

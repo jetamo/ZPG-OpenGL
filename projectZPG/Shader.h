@@ -1,6 +1,7 @@
 #pragma once
 #include "GL/glew.h"
 #include <GLFW/glfw3.h>
+#include "soil/SOIL.h"
 #include <string>
 #include "glm/mat4x4.hpp"
 #include "Observer.h"
@@ -9,6 +10,7 @@ class Shader : public Observer
 {
 private:
 	unsigned int shader;
+	GLuint textureID;
 public:
 	Shader(const char* vertex_shader, const char* fragment_shader) {
 
@@ -38,6 +40,27 @@ public:
 		}
 	}
 
+	void createTexture(const char* picture) {
+		//Bind the first texture to the first texture unit.
+		glActiveTexture(GL_TEXTURE0);
+
+		textureID = SOIL_load_OGL_texture(picture, SOIL_LOAD_RGBA, SOIL_CREATE_NEW_ID, SOIL_FLAG_INVERT_Y);
+
+		glBindTexture(GL_TEXTURE_2D, textureID);
+
+		//Set texture unit to fragment shader
+		GLint uniformID = glGetUniformLocation(shader, "textureUnitID");
+		glUniform1i(uniformID, 0);
+	}
+
+	void bindTexture() {
+		glBindTexture(GL_TEXTURE_2D, textureID);
+
+		//Set texture unit to fragment shader
+		GLint uniformID = glGetUniformLocation(shader, "textureUnitID");
+		glUniform1i(uniformID, 0);
+	}
+
 	void bind() {
 		glUseProgram(shader);
 	}
@@ -49,11 +72,20 @@ public:
 	void setUniform(const char* name, const glm::vec3& vector) {
 		glUniform3f(glGetUniformLocation(shader, name), vector.x, vector.y, vector.z);
 	}
+	void setUniform(const char* name, const int number) {
+		glUniform1i(glGetUniformLocation(shader, name), number);
+	}
+	void setUniform(const char* name, const float number) {
+		glUniform1i(glGetUniformLocation(shader, name), number);
+	}
 
-	void update(glm::mat4 viewMatrix, glm::mat4 projectionMatrix, glm::vec3 position) {
+	void update(glm::mat4 viewMatrix, glm::mat4 projectionMatrix, glm::vec3 position, glm::vec3 direction) {
+		bind();
+		bindTexture();
 		setUniform("view", viewMatrix);
 		setUniform("projection", projectionMatrix);
 		setUniform("camPosition", position);
+		setUniform("camDirection", direction);
 	}
 };
 

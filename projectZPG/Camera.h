@@ -34,6 +34,11 @@ public:
 
 	}
 
+	glm::vec3 getPosition()
+	{
+		return position;
+	}
+
 	void setCamera() {
 		View = glm::lookAt(	
 			position, // Camera is at (4,3,-3), in World Space
@@ -41,6 +46,13 @@ public:
 			glm::vec3(0, 1, 0)  // Head is up (set to 0,-1,0 to look upside-down)
 		);
 		notifyObservers();
+	}
+
+	glm::vec3 getDirection() {
+	//	glm::vec3 chlapak = glm::normalize(position - target);
+	//	return chlapak;
+		glm::vec3 pos = glm::unProject(glm::vec3(400, 300, 100), View, Projection, glm::vec4(0, 0, 800, 600));
+		return glm::normalize(pos - position);
 	}
 
 	glm::mat4 getProjection() {
@@ -71,6 +83,7 @@ public:
 		
 		target = glm::normalize(target);
 		setCamera();
+		notifyObservers();
 	}
 
 	void checkForMovement(GLFWwindow* window) {
@@ -95,7 +108,7 @@ public:
 	void notifyObservers() {
 		for (Observer* observer : observerCollection)
 		{
-			observer->update(View, Projection, position);
+			observer->update(View, Projection, position, getDirection());
 		}
 	}
 };
