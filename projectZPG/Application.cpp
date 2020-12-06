@@ -24,9 +24,11 @@
 #include "suzi_smooth.h"
 #include "sphere.h"
 #include "plain.h"
+#include "Window.h"
 
 Application Application::instance;
 bool Application::clicked = false;
+
 
 void Application::Start()
 {
@@ -135,20 +137,14 @@ void Application::Start()
 	static double oldMouseX = 0;
 	static double oldMouseY = 0;
 
-	GLFWwindow* window;
 	if (!glfwInit()) {
 		fprintf(stderr, "ERROR: could not start GLFW3\n");
 		exit(EXIT_FAILURE);
 	}
 
+	Window* window = new Window(800, 600, "ZPG");
+	Application::setCallbacks(window->getWindow());
 
-	window = glfwCreateWindow(800, 600, "ZPG", NULL, NULL);
-	if (!window)
-	{
-		glfwTerminate();
-		exit(EXIT_FAILURE);
-	}
-	glfwMakeContextCurrent(window);
 	glfwSwapInterval(1);
 	// start GLEW extension handler
 	glewExperimental = GL_TRUE;
@@ -162,32 +158,8 @@ void Application::Start()
 	int major, minor, revision;
 	glfwGetVersion(&major, &minor, &revision);
 	printf("Using GLFW %i.%i.%i\n", major, minor, revision);
-	int width, height;
-	glfwGetFramebufferSize(window, &width, &height);
-	float ratio = width / (float)height;
-	glViewport(0, 0, width, height);
 
-	glfwSetCursorPosCallback(window, [](GLFWwindow* window, double mouseXPos, double mouseYPos)
-		-> void {CallbacksHandler::getInstance().cursor_pos_callback(window, mouseXPos, mouseYPos); });
-
-	glfwSetErrorCallback([](int error, const char* description)
-		-> void {CallbacksHandler::getInstance().error_callback(error, description); });
-
-	glfwSetKeyCallback(window, [](GLFWwindow* window, int key, int scancode, int action, int mods)
-		-> void {CallbacksHandler::getInstance().key_callback(window, key, scancode, action, mods); });
-
-
-	glfwSetMouseButtonCallback(window, [](GLFWwindow* window, int button, int action, int mode)
-		-> void {CallbacksHandler::getInstance().button_callback(window, button, action, mode); });
-
-	glfwSetWindowFocusCallback(window, [](GLFWwindow* window, int focused)
-		-> void {CallbacksHandler::getInstance().window_focus_callback(window, focused); });
-
-	glfwSetWindowIconifyCallback(window, [](GLFWwindow* window, int iconified)
-		-> void {CallbacksHandler::getInstance().window_iconify_callback(window, iconified); });
-
-	glfwSetWindowSizeCallback(window, [](GLFWwindow* window, int width, int height)
-		-> void {CallbacksHandler::getInstance().window_size_callback(window, width, height); });
+	
 
 	const float cubePoints[] = { -0.5f, -0.5f, 0.5f, 1.0f, 0.0f, 0.0f,
 		0.5f, -0.5f, 0.5f, 0.0f, 1.0f, 0.0f,
@@ -319,7 +291,7 @@ void Application::Start()
 	//shader->bindTexture();
 
 
-	while (!glfwWindowShouldClose(window))
+	while (!glfwWindowShouldClose(window->getWindow()))
 	{
 		shader->setUniform("lights[0].lightPos", glm::vec3(2.f, 0.f, 5.f));
 		shader->setUniform("lights[0].lightColor", glm::vec3(0.1f, 1.f, 0.1f));
@@ -337,10 +309,10 @@ void Application::Start()
 
 		oldMouseX = mouseX;
 		oldMouseY = mouseY;
-		glfwGetCursorPos(window, &mouseX, &mouseY);
+		glfwGetCursorPos(window->getWindow(), &mouseX, &mouseY);
 		// clear color and depth buffer
 		glm::dvec2 delta = glm::dvec2(mouseX, mouseY) - glm::dvec2(oldMouseX, oldMouseY);
-		camera->checkForMovement(window);
+		camera->checkForMovement(window->getWindow());
 		camera->changeViewAngle(delta.x, -delta.y);
 		glClearStencil(0);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -400,10 +372,39 @@ void Application::Start()
 		// update other events like input handling
 		glfwPollEvents();
 		// put the stuff we’ve been drawing onto the display
-		glfwSwapBuffers(window);
+		glfwSwapBuffers(window->getWindow());
 	}
-	glfwDestroyWindow(window);
+	glfwDestroyWindow(window->getWindow());
 	glfwTerminate();
 	exit(EXIT_SUCCESS);
 
 }
+
+void Application::setCallbacks(GLFWwindow* _window)
+{
+
+
+		glfwSetCursorPosCallback(_window, [](GLFWwindow* window, double mouseXPos, double mouseYPos)
+			-> void {CallbacksHandler::getInstance().cursor_pos_callback(window, mouseXPos, mouseYPos); });
+
+		glfwSetErrorCallback([](int error, const char* description)
+			-> void {CallbacksHandler::getInstance().error_callback(error, description); });
+
+		glfwSetKeyCallback(_window, [](GLFWwindow* window, int key, int scancode, int action, int mods)
+			-> void {CallbacksHandler::getInstance().key_callback(window, key, scancode, action, mods); });
+
+
+		glfwSetMouseButtonCallback(_window, [](GLFWwindow* window, int button, int action, int mode)
+			-> void {CallbacksHandler::getInstance().button_callback(window, button, action, mode); });
+
+		glfwSetWindowFocusCallback(_window, [](GLFWwindow* window, int focused)
+			-> void {CallbacksHandler::getInstance().window_focus_callback(window, focused); });
+
+		glfwSetWindowIconifyCallback(_window, [](GLFWwindow* window, int iconified)
+			-> void {CallbacksHandler::getInstance().window_iconify_callback(window, iconified); });
+
+		glfwSetWindowSizeCallback(_window, [](GLFWwindow* window, int width, int height)
+			-> void {CallbacksHandler::getInstance().window_size_callback(window, width, height); });
+}
+
+

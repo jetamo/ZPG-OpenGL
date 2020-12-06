@@ -1,5 +1,4 @@
 #pragma once
-#include <stdio.h>
 #include "Camera.h"
 #include <GLFW\glfw3.h>
 
@@ -17,4 +16,6 @@ public:
         return instance;
     }
     static void Start();
+    
+    static void setCallbacks(GLFWwindow* _window);
 };
