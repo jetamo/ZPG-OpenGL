@@ -1,11 +1,15 @@
 #pragma once
 #include "Object.h"
+#include "Texture.h"
 
 class TextureObject : public Object
 {
 public:
+	Texture* texture;
+
 	TextureObject(const float* _points, int _pointsSize, Shader* _shader, int _id) : Object(_points, _pointsSize, _shader, _id)
 	{
+		texture = new Texture();
 		id = _id;
 		shader = _shader;
 		pointsSize = _pointsSize;
@@ -32,6 +36,8 @@ public:
 
 	}
 	
-
+	void setTexture(Texture* _texture) {
+		texture = _texture;
+	}
 };
 

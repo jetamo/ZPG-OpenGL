@@ -268,7 +268,7 @@ void Application::Start()
 	glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
 
 	Camera* camera = new Camera();
-	Light* light = new Light(glm::vec3(500.f, 0.f, 0.f), glm::vec3(0.385f, 0.647f, 0.812f));
+	Light* light = new Light(glm::vec3(500.f, 0.f, 0.f), glm::vec3(0.385f, 0.647f, 0.812f), 1);
 	Renderer* renderer = new Renderer(camera);
 
 	//0.385f, 0.647f, 0.812f
