@@ -5,6 +5,7 @@
 #include "Shader.h"
 #include <glm/gtc/matrix_transform.hpp> // glm::translate, glm::rotate, glm::scale, glm::perspective
 #include <iostream>
+#include "Texture.h"
 
 
 
@@ -19,10 +20,12 @@ protected:
 public:
 	int pointsSize;
 	Shader* shader;
+	Texture* texture;
 	glm::mat4 transform = glm::mat4(1.0f);
 	//float* points;
 	Object(const float* _points, int _pointsSize, Shader* _shader, int _id)
 	{
+		texture = nullptr;
 		id = _id;
 		shader = _shader;
 		pointsSize = _pointsSize;

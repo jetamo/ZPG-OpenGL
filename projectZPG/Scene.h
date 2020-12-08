@@ -19,5 +19,9 @@ public:
 	ObjectManager* getObjectManager() {
 		return objectManager;
 	}
+
+	std::vector<Light*> getLights() {
+		return lights;
+	}
 };
 

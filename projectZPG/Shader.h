@@ -39,6 +39,9 @@ public:
 			delete[] strInfoLog;
 		}
 	}
+	unsigned int getID() {
+		return shader;
+	}
 
 	//void createTexture(const char* picture) {
 	//	//Bind the first texture to the first texture unit.
@@ -81,7 +84,6 @@ public:
 
 	void update(glm::mat4 viewMatrix, glm::mat4 projectionMatrix, glm::vec3 position, glm::vec3 direction) {
 		bind();
-		//bindTexture();
 		setUniform("view", viewMatrix);
 		setUniform("projection", projectionMatrix);
 		setUniform("camPosition", position);

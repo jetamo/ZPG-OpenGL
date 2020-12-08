@@ -20,26 +20,20 @@ public:
 		object->bind();
 		object->shader->bind();
 		object->shader->setUniform("model", object->transform);
+		if(object->texture != nullptr)
+			object->texture->bindTexture(object->shader->getID());
 		glDrawArrays(GL_TRIANGLES, 0, object->pointsSize); //mode,first,count
 	}
 
 	void draw(ObjectManager* objectMng)
 	{
 		for (Object* object : objectMng->getObjects()) {
-			object->bind();
-			object->shader->bind();
-			object->shader->setUniform("model", object->transform);
-			glDrawArrays(GL_TRIANGLES, 0, object->pointsSize); //mode,first,count
+			draw(object);
 		}
 	}
 
 	void draw(Scene* scene)
 	{
-		for (Object* object : scene->getObjectManager()->getObjects()) {
-			object->bind();
-			object->shader->bind();
-			object->shader->setUniform("model", object->transform);
-			glDrawArrays(GL_TRIANGLES, 0, object->pointsSize); //mode,first,count
-		}
+		draw(scene->getObjectManager());
 	}
 };

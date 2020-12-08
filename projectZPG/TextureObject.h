@@ -5,7 +5,7 @@
 class TextureObject : public Object
 {
 public:
-	Texture* texture;
+	//Texture* texture;
 
 	TextureObject(const float* _points, int _pointsSize, Shader* _shader, int _id) : Object(_points, _pointsSize, _shader, _id)
 	{

@@ -25,6 +25,10 @@
 #include "sphere.h"
 #include "plain.h"
 #include "Window.h"
+#include "ObjectManager.h"
+#include "Texture.h"
+#include "Scene.h"
+#include "SceneManager.h"
 
 Application Application::instance;
 bool Application::clicked = false;
@@ -240,16 +244,21 @@ void Application::Start()
 	};
 
 	//create and compile shaders
+	Shader* shaderSky = new Shader(vertex_shader, fragment_shader);
 	Shader* shader = new Shader(vertex_shader, fragment_shader);
-	Shader* shaderdvojka = new Shader(vertex_shader, fragment_shader);
 	//Object* cube = new Object(cubePoints, sizeof(cubePoints), shader, 1);
 	//Object* suzi = new Object(suziSmooth, sizeof(suziSmooth), shader, 2);
 	//Object* circle3d = new Object(sphere, sizeof(sphere), shader, 3);
 
-	TextureObject* skybox = new TextureObject(TcubePoints, sizeof(TcubePoints), shader, 4);
-	TextureObject* plainO = new TextureObject(plain, sizeof(plain), shaderdvojka, 4);
+	Texture* skyBoxTexture = new Texture("kostka.png");
+	Texture* americaTexture = new Texture("test.png");
 
-	//TextureObject* plainO = new TextureObject(plain, sizeof(plain), shader, 4);
+	TextureObject* skybox = new TextureObject(TcubePoints, sizeof(TcubePoints), shaderSky, 3);
+	TextureObject* plainO = new TextureObject(plain, sizeof(plain), shader, 4);
+	skybox->setTexture(skyBoxTexture);
+	plainO->setTexture(americaTexture);
+
+	ObjectManager* objectManager = new ObjectManager();
 
 	//cube->setPosition(glm::vec3(-1.f, 0.f, 0.f));
 	//suzi->setPosition(glm::vec3(2.f, 0.f, 0.f));
@@ -257,29 +266,26 @@ void Application::Start()
 	//circle3d->setPosition(glm::vec3(-2.f, 0.f, 0.f));
 	plainO->setPosition(glm::vec3(0.f, 0.f, 0.f));
 
-	std::vector<Object*> objects;
 	//objects.push_back(cube);
 	//objects.push_back(suzi);
 	//objects.push_back(circle3d);
-	objects.push_back(plainO);
+	objectManager->add(plainO);
+	Scene* testScene = new Scene(objectManager);
 
 	//přidání ID do stencil bufferu
 	glEnable(GL_STENCIL_TEST);
 	glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
 
 	Camera* camera = new Camera();
-	Light* light = new Light(glm::vec3(500.f, 0.f, 0.f), glm::vec3(0.385f, 0.647f, 0.812f), 1);
+	Light* light = new Light(glm::vec3(2.f, 0.f, 5.f), glm::vec3(0.1f, 1.f, 0.1f), 2, 12.5f);
+	testScene->addLight(light);
 	Renderer* renderer = new Renderer(camera);
-
 	//0.385f, 0.647f, 0.812f
 
 	CallbacksHandler::setCamera(*camera);
 
 	camera->registerObserver(*shader);
-	camera->registerObserver(*shaderdvojka);
-
-	shader->createTexture("test.png");
-	shaderdvojka->createTexture("kostka.png");
+	camera->registerObserver(*shaderSky);
 
 
 	glm::mat4 model;
@@ -291,21 +297,15 @@ void Application::Start()
 	//shader->bindTexture();
 
 
+
+
 	while (!glfwWindowShouldClose(window->getWindow()))
 	{
-		shader->setUniform("lights[0].lightPos", glm::vec3(2.f, 0.f, 5.f));
-		shader->setUniform("lights[0].lightColor", glm::vec3(0.1f, 1.f, 0.1f));
-		shader->setUniform("lights[0].radius", glm::cos(glm::radians(12.5f)));
-		shader->setUniform("lights[0].type", 2);
-		shaderdvojka->setUniform("lights[0].lightPos", glm::vec3(2.f, 0.f, 5.f));
-		shaderdvojka->setUniform("lights[0].lightColor", glm::vec3(0.1f, 1.f, 0.1f));
-		shaderdvojka->setUniform("lights[0].radius", glm::cos(glm::radians(12.5f)));
-		shaderdvojka->setUniform("lights[0].type", 2);
-		//shader->setUniform("lights[1].lightPos", glm::vec3(10.0f, 20.f, 0.f));
-		//shader->setUniform("lights[1].lightColor", glm::vec3(1.f, 0.1f, 0.1f));
-		//shader->setUniform("lights[1].radius", glm::cos(glm::radians(5.0f)));
-		//shader->setUniform("lights[1].type", 2);
-
+		int lightNr = 0;
+		for (Light* light : testScene->getLights()) {
+			light->setUniforms(shader, lightNr);
+			lightNr++;
+		}
 
 		oldMouseX = mouseX;
 		oldMouseY = mouseY;
@@ -320,17 +320,10 @@ void Application::Start()
 
 		skybox->setPosition(camera->getPosition()); 
 		glDisable(GL_DEPTH_TEST);
-		//shaderdvojka->bindTexture("kostka.png");
-		shaderdvojka->bindTexture();
 		renderer->draw(skybox);
 		glEnable(GL_DEPTH_TEST);
-		shader->bindTexture();
-		for (Object* object : objects) {
-			glStencilFunc(GL_ALWAYS, object->getId(), 0xFF);
-			//object->transform = glm::scale(glm::mat4(1.0f), { 5, 5, 5 });
-			//shader->bindTexture("test.png");
-			renderer->draw(object);
-		}
+
+		renderer->draw(testScene);
 		if (clicked)
 		{
 			//načtení ID a pozice ve světových souřadnicích
@@ -358,9 +351,10 @@ void Application::Start()
 			glm::vec3 pos = glm::unProject(screenX, view, projection, viewPort);
 			
 			printf("unProject[%f, %f, %f] \n", pos.x, pos.y, pos.z);
-			Object* tmpObject = new Object(sphere, sizeof(sphere), shader, objects.at(objects.size() - 1)->getId() + 1);
+			Object* tmpObject = new Object(sphere, sizeof(sphere), shader, objectManager->getObjects().at(objectManager->getObjects().size() - 1)->getId() + 1);
 			tmpObject->setPosition(pos);
-			objects.push_back(tmpObject);
+			tmpObject->transform = glm::scale(tmpObject->transform, glm::vec3(0.1, 0.1, 0.1));
+			objectManager->add(tmpObject);
 			Application::clicked = false;
 		}
 
