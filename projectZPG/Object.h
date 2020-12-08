@@ -63,6 +63,11 @@ public:
 		transform = glm::rotate(transform, glm::radians(fi), axis);
 	}
 
+	void scale(glm::vec3 rate)
+	{
+		transform = glm::scale(transform, rate);
+	}
+
 	int getId() {
 		return id;
 	}

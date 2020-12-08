@@ -21,14 +21,12 @@
 #include "Renderer.h"
 #include <vector>
 
-#include "suzi_smooth.h"
-#include "sphere.h"
-#include "plain.h"
 #include "Window.h"
 #include "ObjectManager.h"
 #include "Texture.h"
 #include "Scene.h"
 #include "SceneManager.h"
+#include "Game.h"
 
 Application Application::instance;
 bool Application::clicked = false;
@@ -135,12 +133,6 @@ void Application::Start()
 
 
 
-	static double mouseX = 0;
-	static double mouseY = 0;
-
-	static double oldMouseX = 0;
-	static double oldMouseY = 0;
-
 	if (!glfwInit()) {
 		fprintf(stderr, "ERROR: could not start GLFW3\n");
 		exit(EXIT_FAILURE);
@@ -163,211 +155,10 @@ void Application::Start()
 	glfwGetVersion(&major, &minor, &revision);
 	printf("Using GLFW %i.%i.%i\n", major, minor, revision);
 
-	
+	Game* game = new Game(window, vertex_shader, fragment_shader);
 
-	const float cubePoints[] = { -0.5f, -0.5f, 0.5f, 1.0f, 0.0f, 0.0f,
-		0.5f, -0.5f, 0.5f, 0.0f, 1.0f, 0.0f,
-		-0.5f, 0.5f, 0.5f, 0.0f, 0.0f, 1.0f,
-		0.5f, 0.5f, 0.5f, 1.0f, 0.0f, 0.0f,
-		0.5f, -0.5f, 0.5f, 0.0f, 1.0f, 0.0f,
-		-0.5f, 0.5f, 0.5f, 0.0f, 0.0f, 1.0f,
+	game->run();
 
-		-0.5f, -0.5f, -0.5f, 1.0f, 0.0f, 0.0f,
-		0.5f, -0.5f, -0.5f, 0.0f, 1.0f, 0.0f,
-		-0.5f, 0.5f, -0.5f, 0.0f, 0.0f, 1.0f,
-		0.5f, 0.5f, -0.5f, 1.0f, 0.0f, 0.0f,
-		0.5f, -0.5f, -0.5f, 0.0f, 1.0f, 0.0f,
-		-0.5f, 0.5f, -0.5f, 0.0f, 0.0f, 1.0f,
-
-		-0.5f, -0.5f, 0.5f, 1.0f, 0.0f, 0.0f,
-		-0.5f, 0.5f, 0.5f, 0.0f, 1.0f, 0.0f,
-		-0.5f, -0.5f, -0.5f, 0.0f, 0.0f, 1.0f,
-		-0.5f, 0.5f, -0.5f, 1.0f, 0.0f, 0.0f,
-		-0.5f, 0.5f, 0.5f, 0.0f, 1.0f, 0.0f,
-		-0.5f, -0.5f, -0.5f, 0.0f, 0.0f, 1.0f,
-
-		0.5f, -0.5f, 0.5f, 1.0f, 0.0f, 0.0f,
-		0.5f, 0.5f, 0.5f, 0.0f, 1.0f, 0.0f,
-		0.5f, -0.5f, -0.5f, 0.0f, 0.0f, 1.0f,
-		0.5f, 0.5f, -0.5f, 1.0f, 0.0f, 0.0f,
-		0.5f, 0.5f, 0.5f, 0.0f, 1.0f, 0.0f,
-		0.5f, -0.5f, -0.5f, 0.0f, 0.0f, 1.0f, };
-
-	const float TcubePoints[] = {
-		-1.0f,-1.0f,-1.0f, 0.3f, 0.0f, 0.0f,0.000059f, 1.0f - 0.000004f,
-		-1.0f,-1.0f, 1.0f, 0.3f, 0.0f, 0.0f,0.000103f, 1.0f - 0.336048f,
-		-1.0f, 1.0f, 1.0f, 0.3f, 0.0f, 0.0f,0.335973f, 1.0f - 0.335903f,
-		1.0f, 1.0f,-1.0f,  0.3f, 0.0f, 0.0f,1.000023f, 1.0f - 0.000013f,
-		-1.0f,-1.0f,-1.0f, 0.3f, 0.0f, 0.0f,0.667979f, 1.0f - 0.335851f,
-		-1.0f, 1.0f,-1.0f, 0.3f, 0.0f, 0.0f,0.999958f, 1.0f - 0.336064f,
-		1.0f,-1.0f, 1.0f,  0.3f, 0.0f, 0.0f,0.667979f, 1.0f - 0.335851f,
-		-1.0f,-1.0f,-1.0f, 0.3f, 0.0f, 0.0f,0.336024f, 1.0f - 0.671877f,
-		1.0f,-1.0f,-1.0f,  0.3f, 0.0f, 0.0f,0.667969f, 1.0f - 0.671889f,
-		1.0f, 1.0f,-1.0f,  0.3f, 0.0f, 0.0f,1.000023f, 1.0f - 0.000013f,
-		1.0f,-1.0f,-1.0f,  0.3f, 0.0f, 0.0f,0.668104f, 1.0f - 0.000013f,
-		-1.0f,-1.0f,-1.0f, 0.3f, 0.0f, 0.0f,0.667979f, 1.0f - 0.335851f,
-		-1.0f,-1.0f,-1.0f, 0.3f, 0.0f, 0.0f,0.000059f, 1.0f - 0.000004f,
-		-1.0f, 1.0f, 1.0f, 0.3f, 0.0f, 0.0f,0.335973f, 1.0f - 0.335903f,
-		-1.0f, 1.0f,-1.0f, 0.3f, 0.0f, 0.0f,0.336098f, 1.0f - 0.000071f,
-		1.0f,-1.0f, 1.0f,  0.3f, 0.0f, 0.0f,0.667979f, 1.0f - 0.335851f,
-		-1.0f,-1.0f, 1.0f, 0.3f, 0.0f, 0.0f,0.335973f, 1.0f - 0.335903f,
-		-1.0f,-1.0f,-1.0f, 0.3f, 0.0f, 0.0f,0.336024f, 1.0f - 0.671877f,
-		-1.0f, 1.0f, 1.0f, 0.3f, 0.0f, 0.0f,1.000004f, 1.0f - 0.671847f,
-		-1.0f,-1.0f, 1.0f, 0.3f, 0.0f, 0.0f,0.999958f, 1.0f - 0.336064f,
-		1.0f,-1.0f, 1.0f,  0.3f, 0.0f, 0.0f,0.667979f, 1.0f - 0.335851f,
-		1.0f, 1.0f, 1.0f,  0.3f, 0.0f, 0.0f,0.668104f, 1.0f - 0.000013f,
-		1.0f,-1.0f,-1.0f,  0.3f, 0.0f, 0.0f,0.335973f, 1.0f - 0.335903f,
-		1.0f, 1.0f,-1.0f,  0.3f, 0.0f, 0.0f,0.667979f, 1.0f - 0.335851f,
-		1.0f,-1.0f,-1.0f,  0.3f, 0.0f, 0.0f,0.335973f, 1.0f - 0.335903f,
-		1.0f, 1.0f, 1.0f,  0.3f, 0.0f, 0.0f,0.668104f, 1.0f - 0.000013f,
-		1.0f,-1.0f, 1.0f,  0.3f, 0.0f, 0.0f,0.336098f, 1.0f - 0.000071f,
-		1.0f, 1.0f, 1.0f,  0.3f, 0.0f, 0.0f,0.000103f, 1.0f - 0.336048f,
-		1.0f, 1.0f,-1.0f,  0.3f, 0.0f, 0.0f,0.000004f, 1.0f - 0.671870f,
-		-1.0f, 1.0f,-1.0f, 0.3f, 0.0f, 0.0f,0.336024f, 1.0f - 0.671877f,
-		1.0f, 1.0f, 1.0f,  0.3f, 0.0f, 0.0f,0.000103f, 1.0f - 0.336048f,
-		-1.0f, 1.0f,-1.0f, 0.3f, 0.0f, 0.0f,0.336024f, 1.0f - 0.671877f,
-		-1.0f, 1.0f, 1.0f, 0.3f, 0.0f, 0.0f,0.335973f, 1.0f - 0.335903f,
-		1.0f, 1.0f, 1.0f,  0.3f, 0.0f, 0.0f,0.667969f, 1.0f - 0.671889f,
-		-1.0f, 1.0f, 1.0f, 0.3f, 0.0f, 0.0f,1.000004f, 1.0f - 0.671847f,
-		1.0f,-1.0f, 1.0f,  0.3f, 0.0f, 0.0f,0.667979f, 1.0f - 0.335851f
-	};
-
-	const float plain[] = {
-		//vrchol, normála, uv souřadnice
-		1.0f, 0.0f, 1.0f,   0.0f, 1.0f, 0.0f,   0.0f, 0.0f,
-		1.0f, 0.0f,-1.0f,   0.0f, 1.0f, 0.0f,   1.0f, 0.0f,
-	   -1.0f, 0.0f,-1.0f,   0.0f, 1.0f, 0.0f,   1.0f, 1.0f,
-
-	   -1.0f, 0.0f, 1.0f,   0.0f, 1.0f, 0.0f,   0.0f, 1.0f,
-		1.0f, 0.0f, 1.0f,   0.0f, 1.0f, 0.0f,   0.0f, 0.0f,
-	   -1.0f, 0.0f,-1.0f,   0.0f, 1.0f, 0.0f,   1.0f, 1.0f
-	};
-
-	//create and compile shaders
-	Shader* shaderSky = new Shader(vertex_shader, fragment_shader);
-	Shader* shader = new Shader(vertex_shader, fragment_shader);
-	//Object* cube = new Object(cubePoints, sizeof(cubePoints), shader, 1);
-	//Object* suzi = new Object(suziSmooth, sizeof(suziSmooth), shader, 2);
-	//Object* circle3d = new Object(sphere, sizeof(sphere), shader, 3);
-
-	Texture* skyBoxTexture = new Texture("kostka.png");
-	Texture* americaTexture = new Texture("test.png");
-
-	TextureObject* skybox = new TextureObject(TcubePoints, sizeof(TcubePoints), shaderSky, 3);
-	TextureObject* plainO = new TextureObject(plain, sizeof(plain), shader, 4);
-	skybox->setTexture(skyBoxTexture);
-	plainO->setTexture(americaTexture);
-
-	ObjectManager* objectManager = new ObjectManager();
-
-	//cube->setPosition(glm::vec3(-1.f, 0.f, 0.f));
-	//suzi->setPosition(glm::vec3(2.f, 0.f, 0.f));
-	//suzi->rotate(20, glm::vec3(0.f, 1.f, 0.f));
-	//circle3d->setPosition(glm::vec3(-2.f, 0.f, 0.f));
-	plainO->setPosition(glm::vec3(0.f, 0.f, 0.f));
-
-	//objects.push_back(cube);
-	//objects.push_back(suzi);
-	//objects.push_back(circle3d);
-	objectManager->add(plainO);
-	Scene* testScene = new Scene(objectManager);
-
-	//přidání ID do stencil bufferu
-	glEnable(GL_STENCIL_TEST);
-	glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
-
-	Camera* camera = new Camera();
-	Light* light = new Light(glm::vec3(2.f, 0.f, 5.f), glm::vec3(0.1f, 1.f, 0.1f), 2, 12.5f);
-	testScene->addLight(light);
-	Renderer* renderer = new Renderer(camera);
-	//0.385f, 0.647f, 0.812f
-
-	CallbacksHandler::setCamera(*camera);
-
-	camera->registerObserver(*shader);
-	camera->registerObserver(*shaderSky);
-
-
-	glm::mat4 model;
-	float rot = 0.0f;
-
-	glEnable(GL_DEPTH_TEST);
-
-
-	//shader->bindTexture();
-
-
-
-
-	while (!glfwWindowShouldClose(window->getWindow()))
-	{
-		int lightNr = 0;
-		for (Light* light : testScene->getLights()) {
-			light->setUniforms(shader, lightNr);
-			lightNr++;
-		}
-
-		oldMouseX = mouseX;
-		oldMouseY = mouseY;
-		glfwGetCursorPos(window->getWindow(), &mouseX, &mouseY);
-		// clear color and depth buffer
-		glm::dvec2 delta = glm::dvec2(mouseX, mouseY) - glm::dvec2(oldMouseX, oldMouseY);
-		camera->checkForMovement(window->getWindow());
-		camera->changeViewAngle(delta.x, -delta.y);
-		glClearStencil(0);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-
-		skybox->setPosition(camera->getPosition()); 
-		glDisable(GL_DEPTH_TEST);
-		renderer->draw(skybox);
-		glEnable(GL_DEPTH_TEST);
-
-		renderer->draw(testScene);
-		if (clicked)
-		{
-			//načtení ID a pozice ve světových souřadnicích
-			GLbyte color[4];
-			GLfloat depth;
-			GLuint index;
-			
-			GLint x = (GLint)mouseX;
-			GLint y = (GLint)mouseY;
-			
-			int newy = 600 - y - 10;
-			
-			glReadPixels(x, newy, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, &color);
-			glReadPixels(x, newy, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &depth);
-			glReadPixels(x, newy, 1, 1, GL_STENCIL_INDEX, GL_UNSIGNED_INT, &index);
-			
-			printf("Clicked on pixel %d, %d, color %02hhx%02hhx%02hhx%02hhx, depth %f, stencil index %u \n", x, y, color[0], color[1], color[2], color[3], depth, index);
-			
-			//Application::getInstance()-&gt;getScene()-&gt;getRenderer()-&gt;setSelect(index-1);
-			
-			glm::vec3 screenX = glm::vec3(x, newy, depth);
-			glm::mat4 view = camera->getView();
-			glm::mat4 projection = camera->getProjection();
-			glm::vec4 viewPort = glm::vec4(0, 0, 800, 600);
-			glm::vec3 pos = glm::unProject(screenX, view, projection, viewPort);
-			
-			printf("unProject[%f, %f, %f] \n", pos.x, pos.y, pos.z);
-			Object* tmpObject = new Object(sphere, sizeof(sphere), shader, objectManager->getObjects().at(objectManager->getObjects().size() - 1)->getId() + 1);
-			tmpObject->setPosition(pos);
-			tmpObject->transform = glm::scale(tmpObject->transform, glm::vec3(0.1, 0.1, 0.1));
-			objectManager->add(tmpObject);
-			Application::clicked = false;
-		}
-
-		//model = glm::translate(glm::mat4(1.0f), glm::vec3(0.f, 0.f, -1.f));
-		//model = glm::scale(model, glm::vec3(0.5, 0.5, 0.5));
-		//shader->setUniform("model", model);
-		//circle3d->draw(*shader);
-
-		// update other events like input handling
-		glfwPollEvents();
-		// put the stuff we’ve been drawing onto the display
-		glfwSwapBuffers(window->getWindow());
-	}
 	glfwDestroyWindow(window->getWindow());
 	glfwTerminate();
 	exit(EXIT_SUCCESS);
