@@ -1,5 +1,5 @@
 #version 330
-const int nrOfLights = 1;
+const int nrOfLights = 3;
 struct light
 {
 	vec3 lightPos;	
@@ -50,11 +50,11 @@ void main () {
 						frag_colour +=  diffuse + specular;
 					}
 					else
-						frag_colour = vec4(0.0, 0.0, 0.0, 1.0);
+						frag_colour += vec4(0.0, 0.0, 0.0, 1.0);
 				}
 				else if(lights[i].type == 3)
 				{
-					vec3 lightVector = ex_camPosition - ex_worldPosition; 
+					vec3 lightVector = lights[i].direction;
 					lightVector = normalize(lightVector);
 					vec3 viewDirection = normalize(ex_camPosition - ex_worldPosition);
 					vec3 reflectionVector = reflect(-lightVector, ex_worldNormal);

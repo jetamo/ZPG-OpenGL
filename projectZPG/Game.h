@@ -19,6 +19,10 @@
 #include "TextureObject.h"
 #include "Camera.h"
 #include "Light.h"
+#include "LightPoint.h"
+#include "LightSpotlight.h"
+#include "LightDirectional.h"
+#include "LightFactory.h"
 #include "Renderer.h"
 #include <vector>
 
@@ -32,6 +36,11 @@
 #include "Game.h"
 #include "objectPoints.h"
 #include "ShaderLoader/ShaderLoader.h"
+
+
+#include<assimp/Importer.hpp>// C++ importerinterface
+#include<assimp/scene.h>// aiSceneoutputdata structure
+#include<assimp/postprocess.h>// Post processingflags
 
 class Game
 {	 
@@ -60,8 +69,6 @@ private:
 	ObjectManager* objectManager;
 
 	Scene* testScene;
-
-	Light* light;
 
 	Camera* camera;
 
@@ -95,7 +102,8 @@ public:
 
 		skybox = new TextureObject(TcubePoints, sizeof(TcubePoints), shaderSky, 3);
 		plainO = new TextureObject(plain, sizeof(plain), shader, 4);
-
+		Object* opicka = new Object(suziSmooth, sizeof(suziSmooth), shader, 5);
+		opicka->setPosition(glm::vec3(5, 5, 5));
 
 		skybox->setTexture(skyBoxTexture);
 		plainO->setTexture(americaTexture);
@@ -105,10 +113,17 @@ public:
 
 		plainO->setPosition(glm::vec3(0.f, 0.f, 0.f));
 		objectManager->add(plainO);
+		objectManager->add(opicka);
 		testScene = new Scene(objectManager);
 
-		light = new Light(glm::vec3(5.f, 5.f, 5.f), glm::vec3(0.1f, 1.f, 0.1f), 2, 12.5f);
-		testScene->addLight(light);
+		LightFactory* lightFactory = new LightFactory();
+
+		Light* pointLight = lightFactory->getLightPoint(glm::vec3(15.f, 15.f, 15.f), glm::vec3(0.1f, 1.f, 0.1f), 0);
+		Light* spotlight = lightFactory->getLightSpotlight(12.5f, glm::vec3(15.f, 15.f, 15.f), glm::vec3(0.1f, 1.f, 0.1f), 1);
+		Light* directionalLight = lightFactory->getLightDirectional(glm::vec3(1.f, 0.f, 0.f), glm::vec3(0.1f, 1.f, 0.1f), 2);
+		//testScene->addLight(pointLight);
+		//testScene->addLight(spotlight);
+		testScene->addLight(directionalLight);
 
 		camera = new Camera();
 
@@ -140,10 +155,8 @@ public:
 
 		while (!glfwWindowShouldClose(window->getWindow()))
 		{
-			int lightNr = 0;
 			for (Light* light : testScene->getLights()) {
-				light->setUniforms(shader, lightNr);
-				lightNr++;
+				light->setUniforms(shader);
 			}
 
 			oldMouseX = mouseX;

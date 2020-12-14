@@ -10,15 +10,9 @@ C:\dev\pelikan\projectZPG\Camera.h(72,1): warning C4244: '+=': conversion from '
 C:\dev\pelikan\projectZPG\Camera.h(73,1): warning C4244: '+=': conversion from 'double' to 'float', possible loss of data
 C:\dev\pelikan\projectZPG\suzi_smooth.h(2911,1): warning C4305: 'initializing': truncation from 'double' to 'const float'
 C:\dev\pelikan\projectZPG\sphere.h(2886,1): warning C4305: 'initializing': truncation from 'double' to 'const float'
-  Light.cpp
+  LightDirectional.cpp
 C:\dev\pelikan\projectZPG\Shader.h(61,51): warning C4244: 'argument': conversion from 'const float' to 'GLint', possible loss of data
-  Renderer.cpp
-C:\dev\pelikan\projectZPG\Shader.h(61,51): warning C4244: 'argument': conversion from 'const float' to 'GLint', possible loss of data
-C:\dev\pelikan\projectZPG\Camera.h(72,1): warning C4244: '+=': conversion from 'double' to 'float', possible loss of data
-C:\dev\pelikan\projectZPG\Camera.h(73,1): warning C4244: '+=': conversion from 'double' to 'float', possible loss of data
-  Scene.cpp
-C:\dev\pelikan\projectZPG\Shader.h(61,51): warning C4244: 'argument': conversion from 'const float' to 'GLint', possible loss of data
-  SceneManager.cpp
+  LightFactory.cpp
 C:\dev\pelikan\projectZPG\Shader.h(61,51): warning C4244: 'argument': conversion from 'const float' to 'GLint', possible loss of data
   Generating Code...
   SOIL.lib(SOIL.obj) : MSIL .netmodule or module compiled with /GL found; restarting link with /LTCG; add /LTCG to the link command line to improve linker performance
