@@ -2,7 +2,7 @@
 #include "glm/vec3.hpp"
 #include "Shader.h"
 
-class Light
+class Light 
 {
 public:
 	glm::vec3 lightPos;

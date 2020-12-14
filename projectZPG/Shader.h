@@ -5,39 +5,18 @@
 #include <string>
 #include "glm/mat4x4.hpp"
 #include "Observer.h"
+#include "ShaderLoader/ShaderLoader.h"
 
 class Shader : public Observer
 {
 private:
-	unsigned int shader;
+	GLuint shader;
 	GLuint textureID;
 public:
 	Shader(const char* vertex_shader, const char* fragment_shader) {
-
-		unsigned int vertexShader = glCreateShader(GL_VERTEX_SHADER);
-		glShaderSource(vertexShader, 1, &vertex_shader, NULL);
-		glCompileShader(vertexShader);
-
-		unsigned int fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-		glShaderSource(fragmentShader, 1, &fragment_shader, NULL);
-		glCompileShader(fragmentShader);
-
-		shader = glCreateProgram();
-		glAttachShader(shader, fragmentShader);
-		glAttachShader(shader, vertexShader);
+		ShaderLoader * loader = new ShaderLoader();
+		shader = loader->loadShader(vertex_shader, fragment_shader);
 		glLinkProgram(shader);
-
-		GLint status;
-		glGetProgramiv(shader, GL_LINK_STATUS, &status);
-		if (status == GL_FALSE)
-		{
-			GLint infoLogLength;
-			glGetProgramiv(shader, GL_INFO_LOG_LENGTH, &infoLogLength);
-			GLchar* strInfoLog = new GLchar[infoLogLength + 1];
-			glGetProgramInfoLog(shader, infoLogLength, NULL, strInfoLog);
-			fprintf(stderr, "Linker failure: %s\n", strInfoLog);
-			delete[] strInfoLog;
-		}
 	}
 	unsigned int getID() {
 		return shader;

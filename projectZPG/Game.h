@@ -31,12 +31,11 @@
 #include "SceneManager.h"
 #include "Game.h"
 #include "objectPoints.h"
+#include "ShaderLoader/ShaderLoader.h"
 
 class Game
 {	 
 private:
-	const char* vertex_shader;
-	const char* fragment_shader;
 	Window* window;
 
 
@@ -68,11 +67,12 @@ private:
 
 	Renderer* renderer;
 
+	const char* vertexTexture = "./Shaders/vertexTexture.glsl";
+	const char* fragmentPhong = "./Shaders/fragmentPhong.glsl";
+
 public:
-	Game(Window* _window, const char* _vertex_shader, const char* _fragment_shader) {
+	Game(Window* _window) {
 		window = _window;
-		vertex_shader = _vertex_shader;
-		fragment_shader = _fragment_shader;
 		
 		init();
 	}
@@ -85,8 +85,8 @@ public:
 		oldMouseY = 0;
 
 
-		shaderSky = new Shader(vertex_shader, fragment_shader);
-		shader = new Shader(vertex_shader, fragment_shader);
+		shaderSky = new Shader(vertexTexture, fragmentPhong);
+		shader = new Shader(vertexTexture, fragmentPhong);
 
 
 		skyBoxTexture = new Texture("kostka.png");
@@ -107,7 +107,7 @@ public:
 		objectManager->add(plainO);
 		testScene = new Scene(objectManager);
 
-		light = new Light(glm::vec3(5.f, 5.f, 5.f), glm::vec3(0.1f, 1.f, 0.1f), 1, 12.5f);
+		light = new Light(glm::vec3(5.f, 5.f, 5.f), glm::vec3(0.1f, 1.f, 0.1f), 2, 12.5f);
 		testScene->addLight(light);
 
 		camera = new Camera();

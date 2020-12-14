@@ -141,6 +141,7 @@
     <ClCompile Include="Scene.cpp" />
     <ClCompile Include="SceneManager.cpp" />
     <ClCompile Include="Shader.cpp" />
+    <ClCompile Include="ShaderLoader\ShaderLoader.cpp" />
     <ClCompile Include="Source.cpp" />
     <ClCompile Include="Subject.cpp" />
     <ClCompile Include="Suzi.cpp" />
@@ -162,11 +163,16 @@
     <ClInclude Include="Scene.h" />
     <ClInclude Include="SceneManager.h" />
     <ClInclude Include="Shader.h" />
+    <ClInclude Include="ShaderLoader\ShaderLoader.h" />
     <ClInclude Include="Subject.h" />
     <ClInclude Include="Suzi.h" />
     <ClInclude Include="Texture.h" />
     <ClInclude Include="TextureObject.h" />
     <ClInclude Include="Window.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Shaders\fragmentPhong.glsl" />
+    <None Include="Shaders\vertexTexture.glsl" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
