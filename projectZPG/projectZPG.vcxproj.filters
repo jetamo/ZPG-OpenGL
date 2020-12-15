@@ -90,6 +90,9 @@
     <ClCompile Include="ObjectLoader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="CurveMover.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Application.h">
@@ -164,12 +167,21 @@
     <ClInclude Include="ObjectLoader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="CurveMover.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\vertexTexture.glsl">
       <Filter>Shaders</Filter>
     </None>
     <None Include="Shaders\fragmentPhong.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\fragmentSkyBox.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\vertexSkyBox.glsl">
       <Filter>Shaders</Filter>
     </None>
   </ItemGroup>

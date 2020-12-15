@@ -10,6 +10,9 @@
 #include "GL/glew.h"
 #include <GLFW/glfw3.h>  
 
+#include "Object.h"
+#include "TextureObject.h"
+
 //Include GLM  
 #include <glm/vec3.hpp> // glm::vec3
 #include <glm/vec4.hpp> // glm::vec4
@@ -19,17 +22,18 @@
 
 class ObjectLoader
 {
+private:
 	int indicesCount = 0;
-
+public:
 	struct Vertex
 	{
 		float Position[3];
 		float Normal[3];
 		float Texture[2];
-		float Tangent[3];
+		//float Tangent[3];
 	};
 
-	void load(std::string fileName)
+	TextureObject* load(std::string fileName, Shader* _shader, int _id)
 	{
 		Assimp::Importer importer;
 		unsigned int importOptions = aiProcess_Triangulate
@@ -39,7 +43,7 @@ class ObjectLoader
 			| aiProcess_CalcTangentSpace;           // vypocet tangenty, nutny pro spravne pouziti normalove mapy
 
 			//aiProcess_GenNormals/ai_Process_GenSmoothNormals - vypocet normal s jemnych prechodem v pripade, ze objekt neobsahuje normaly
-
+		          
 		const aiScene* scene = importer.ReadFile(fileName, importOptions);
 
 		if (scene) { //pokud bylo nacteni uspesne
@@ -88,12 +92,12 @@ class ObjectLoader
 						pVertices[i].Texture[0] = mesh->mTextureCoords[0][i].x;
 						pVertices[i].Texture[1] = mesh->mTextureCoords[0][i].y;
 					}
-					if (mesh->HasTangentsAndBitangents())
-					{
-						pVertices[i].Tangent[0] = mesh->mTangents[i].x;
-						pVertices[i].Tangent[1] = mesh->mTangents[i].y;
-						pVertices[i].Tangent[2] = mesh->mTangents[i].z;
-					}
+					//if (mesh->HasTangentsAndBitangents())
+					//{
+					//	pVertices[i].Tangent[0] = mesh->mTangents[i].x;
+					//	pVertices[i].Tangent[1] = mesh->mTangents[i].y;
+					//	pVertices[i].Tangent[2] = mesh->mTangents[i].z;
+					//}
 
 				}
 
@@ -111,38 +115,42 @@ class ObjectLoader
 					}
 				}
 
-				glGenVertexArrays(1, &VAO);
-				glGenBuffers(1, &VBO);
-				glGenBuffers(1, &IBO);
+				TextureObject* object = new TextureObject(pVertices, sizeof(Vertex) * mesh->mNumVertices, _shader, _id, mesh->mNumFaces, pIndices);
 
-				glBindVertexArray(VAO);
-				glBindBuffer(GL_ARRAY_BUFFER, VBO);
-
-				glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * mesh->mNumVertices, pVertices, GL_STATIC_DRAW);
-
-				glEnableVertexAttribArray(0);
-				glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)(0));
-				glEnableVertexAttribArray(1);
-				glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)(3 * sizeof(GLfloat)));
-				glEnableVertexAttribArray(2);
-				glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)(6 * sizeof(GLfloat)));
-				glEnableVertexAttribArray(3);
-				glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)(8 * sizeof(GLfloat)));
-
-				glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IBO);
-				glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLuint) * mesh->mNumFaces * 3, pIndices, GL_STATIC_DRAW);
-
-				glBindBuffer(GL_ARRAY_BUFFER, 0);
-				glBindVertexArray(VAO);
-
-				GLuint err = glGetError();
-				if (err != GL_NO_ERROR)
-				{
-					std::cout << "GL ERROR: " << err << std::endl; return;
-				} indicesCount = mesh->mNumFaces * 3;
+				//glGenVertexArrays(1, &VAO);
+				//glGenBuffers(1, &VBO);
+				//glGenBuffers(1, &IBO);
+				//
+				//glBindVertexArray(VAO);
+				//glBindBuffer(GL_ARRAY_BUFFER, VBO);
+				//
+				//glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * mesh->mNumVertices, pVertices, GL_STATIC_DRAW);
+				//
+				//glEnableVertexAttribArray(0);
+				//glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)(0));
+				//glEnableVertexAttribArray(1);
+				//glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)(3 * sizeof(GLfloat)));
+				//glEnableVertexAttribArray(2);
+				//glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)(6 * sizeof(GLfloat)));
+				//glEnableVertexAttribArray(3);
+				//glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)(8 * sizeof(GLfloat)));
+				//
+				//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IBO);
+				//glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLuint) * mesh->mNumFaces * 3, pIndices, GL_STATIC_DRAW);
+				//
+				//glBindBuffer(GL_ARRAY_BUFFER, 0);
+				//glBindVertexArray(VAO);
+				//
+				//GLuint err = glGetError();
+				//if (err != GL_NO_ERROR)
+				//{
+				//	std::cout << "GL ERROR: " << err << std::endl; return;
+				//} indicesCount = mesh->mNumFaces * 3;
 
 				delete[] pVertices;
 				delete[] pIndices;
+				
+				return object;
 			}
 		}
 		else {

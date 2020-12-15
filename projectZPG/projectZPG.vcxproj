@@ -76,11 +76,11 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>C:\dev\pelikan\Libr\assimp\include;$(SolutionDir)Libr\glm;$(SolutionDir)\Libr\glew\include;$(SolutionDir)Libr\glfw\include;$(SolutionDir)Libr\;$(SolutionDir)Libr\soil-master\include\;$(SolutionDir)Libr\soil\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Libr\assimp\include;$(SolutionDir)Libr\glm;$(SolutionDir)\Libr\glew\include;$(SolutionDir)Libr\glfw\include;$(SolutionDir)Libr\;$(SolutionDir)Libr\soil-master\include\;$(SolutionDir)Libr\soil\include\assimp;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
-      <AdditionalLibraryDirectories>$(SolutionDir)Libr\glew\lib\Release\Win32;$(SolutionDir)Libr\glfw\lib-vc2019;$(SolutionDir)Libr\soil\lib;C:\dev\pelikan\Libr\assimp\lib\Win32\v141\Release;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)Libr\glew\lib\Release\Win32;$(SolutionDir)Libr\glfw\lib-vc2019;$(SolutionDir)Libr\soil\lib;$(SolutionDir)Libr\assimp\lib\Win32\v141\Release;$(SolutionDir)projectZPG\Debug\projectZPG.tlog;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>glew32.lib;opengl32.lib;glfw3.lib;SOIL.lib;assimp-vc140-mt.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
@@ -132,6 +132,7 @@
     <ClCompile Include="Application.cpp" />
     <ClCompile Include="CallbacksHandler.cpp" />
     <ClCompile Include="Camera.cpp" />
+    <ClCompile Include="CurveMover.cpp" />
     <ClCompile Include="Game.cpp" />
     <ClCompile Include="Light.cpp" />
     <ClCompile Include="LightDirectional.cpp" />
@@ -158,6 +159,7 @@
     <ClInclude Include="Application.h" />
     <ClInclude Include="CallbacksHandler.h" />
     <ClInclude Include="Camera.h" />
+    <ClInclude Include="CurveMover.h" />
     <ClInclude Include="Game.h" />
     <ClInclude Include="Light.h" />
     <ClInclude Include="LightDirectional.h" />
@@ -181,7 +183,9 @@
     <ClInclude Include="Window.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Shaders\fragmentSkyBox.glsl" />
     <None Include="Shaders\fragmentPhong.glsl" />
+    <None Include="Shaders\vertexSkyBox.glsl" />
     <None Include="Shaders\vertexTexture.glsl" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

@@ -1,5 +1,4 @@
 #pragma once
-
 #include "GL/glew.h"
 #include "GLFW/glfw3.h"
 #include "Shader.h"
@@ -17,25 +16,28 @@ private:
 protected:
 	GLuint VAO;
 	int id;
+	unsigned int IBO;
 public:
 	int pointsSize;
 	Shader* shader;
 	Texture* texture;
 	glm::mat4 transform = glm::mat4(1.0f);
+	unsigned int count;
 	//float* points;
-	Object(const float* _points, int _pointsSize, Shader* _shader, int _id)
+	Object(const void* _points, int _pointsSize, Shader* _shader, int _id, int mNumFaces, unsigned int* pIndices)
 	{
 		texture = nullptr;
 		id = _id;
 		shader = _shader;
 		pointsSize = _pointsSize;
-		const float* points = _points;
+		count = sizeof(GLuint) * mNumFaces * 3;
+		const void* points = _points;
 
 		//vertex buffer object (VBO)
 		GLuint VBO = 0;
 		glGenBuffers(1, &VBO); // generate the VBO
 		glBindBuffer(GL_ARRAY_BUFFER, VBO);
-		glBufferData(GL_ARRAY_BUFFER, pointsSize, &points[0],
+		glBufferData(GL_ARRAY_BUFFER, pointsSize, points,
 			GL_STATIC_DRAW);
 		//vertex attribute object(VAO)
 		VAO = 0;
@@ -47,10 +49,17 @@ public:
 
 		glEnableVertexAttribArray(1); //enable vertex attributes
 		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 6, (void*)(3 * sizeof(float)));
+
+		IBO = 0;
+
+		glGenBuffers(1, &IBO);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IBO);
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER, count, pIndices, GL_STATIC_DRAW);
 	}
 
 	void bind() {
 		glBindVertexArray(VAO);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IBO);
 	}
 
 	void setPosition(glm::vec3 newPosition)

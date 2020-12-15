@@ -36,11 +36,8 @@
 #include "Game.h"
 #include "objectPoints.h"
 #include "ShaderLoader/ShaderLoader.h"
+#include "ObjectLoader.h"
 
-
-#include<assimp/Importer.hpp>// C++ importerinterface
-#include<assimp/scene.h>// aiSceneoutputdata structure
-#include<assimp/postprocess.h>// Post processingflags
 
 class Game
 {	 
@@ -65,6 +62,7 @@ private:
 
 	TextureObject* skybox;
 	TextureObject* plainO;
+	TextureObject* house;
 
 	ObjectManager* objectManager;
 
@@ -76,6 +74,8 @@ private:
 
 	const char* vertexTexture = "./Shaders/vertexTexture.glsl";
 	const char* fragmentPhong = "./Shaders/fragmentPhong.glsl";
+	const char* vertexSkyBox = "./Shaders/vertexSkyBox.glsl";
+	const char* fragmentSkyBox = "./Shaders/fragmentSkyBox.glsl";
 
 public:
 	Game(Window* _window) {
@@ -92,35 +92,50 @@ public:
 		oldMouseY = 0;
 
 
-		shaderSky = new Shader(vertexTexture, fragmentPhong);
+		shaderSky = new Shader(vertexSkyBox, fragmentSkyBox);
 		shader = new Shader(vertexTexture, fragmentPhong);
 
 
-		skyBoxTexture = new Texture("kostka.png");
-		americaTexture = new Texture("test.png");
+		skyBoxTexture = new Texture(TextureType::SkyBox);
+		americaTexture = new Texture(TextureType::TWOD, "test.png");
+		Texture* houseTexture = new Texture(TextureType::TWOD, "house.png");
 
 
-		skybox = new TextureObject(TcubePoints, sizeof(TcubePoints), shaderSky, 3);
-		plainO = new TextureObject(plain, sizeof(plain), shader, 4);
-		Object* opicka = new Object(suziSmooth, sizeof(suziSmooth), shader, 5);
-		opicka->setPosition(glm::vec3(5, 5, 5));
 
-		skybox->setTexture(skyBoxTexture);
-		plainO->setTexture(americaTexture);
+		//skybox = new TextureObject(TcubePoints, sizeof(TcubePoints), shaderSky, 3);
+		//plainO = new TextureObject(plain, sizeof(plain), shader, 4);
+		//Object* opicka = new Object(suziSmooth, sizeof(suziSmooth), shader, 5);
+		//opicka->setPosition(glm::vec3(5, 5, 5));
+
+		//plainO->setTexture(americaTexture);
 
 
 		objectManager = new ObjectManager();
 
-		plainO->setPosition(glm::vec3(0.f, 0.f, 0.f));
-		objectManager->add(plainO);
-		objectManager->add(opicka);
+		ObjectLoader* objectLoader = new ObjectLoader();
+		skybox = objectLoader->load("C:\\dev\\pelikan\\models\\sky\\skybox.obj", shaderSky, 0);
+		house = objectLoader->load("C:\\dev\\pelikan\\models\\test.obj", shader, 8);
+		TextureObject* house1 = objectLoader->load("C:\\dev\\pelikan\\models\\test.obj", shader, 10);
+
+
+		skybox->setTexture(skyBoxTexture);
+		house->setTexture(houseTexture);
+		house1->setTexture(houseTexture);
+		house->setPosition(glm::vec3(0.f, 0.f, 0.f));
+		house->setPosition(glm::vec3(15.f, 15.f, 15.f));
+		objectManager->add(house);
+		objectManager->add(house1);
+		//plainO->setPosition(glm::vec3(0.f, 0.f, 0.f));
+		//objectManager->add(plainO);
+		//objectManager->add(opicka);
 		testScene = new Scene(objectManager);
+
 
 		LightFactory* lightFactory = new LightFactory();
 
 		Light* pointLight = lightFactory->getLightPoint(glm::vec3(15.f, 15.f, 15.f), glm::vec3(0.1f, 1.f, 0.1f), 0);
 		Light* spotlight = lightFactory->getLightSpotlight(12.5f, glm::vec3(15.f, 15.f, 15.f), glm::vec3(0.1f, 1.f, 0.1f), 1);
-		Light* directionalLight = lightFactory->getLightDirectional(glm::vec3(1.f, 0.f, 0.f), glm::vec3(0.1f, 1.f, 0.1f), 2);
+		Light* directionalLight = lightFactory->getLightDirectional(glm::vec3(1.f, 1.f, 0.f), glm::vec3(0.5f, 0.5f, 0.4f), 2);
 		//testScene->addLight(pointLight);
 		//testScene->addLight(spotlight);
 		testScene->addLight(directionalLight);
@@ -146,7 +161,6 @@ public:
 		//přidání ID do stencil bufferu
 		glEnable(GL_STENCIL_TEST);
 		glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
-
 		//0.385f, 0.647f, 0.812f
 
 		glEnable(GL_DEPTH_TEST);
@@ -155,9 +169,12 @@ public:
 
 		while (!glfwWindowShouldClose(window->getWindow()))
 		{
+			house->moveOnCurve();
+
 			for (Light* light : testScene->getLights()) {
 				light->setUniforms(shader);
 			}
+
 
 			oldMouseX = mouseX;
 			oldMouseY = mouseY;
@@ -169,9 +186,9 @@ public:
 			glClearStencil(0);
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-
 			skybox->setPosition(camera->getPosition());
 			glDisable(GL_DEPTH_TEST);
+			glStencilFunc(GL_ALWAYS, skybox->getId(), 0xFF);
 			renderer->draw(skybox);
 			glEnable(GL_DEPTH_TEST);
 
@@ -203,10 +220,10 @@ public:
 				glm::vec3 pos = glm::unProject(screenX, view, projection, viewPort);
 
 				printf("unProject[%f, %f, %f] \n", pos.x, pos.y, pos.z);
-				Object* tmpObject = new Object(sphere, sizeof(sphere), shader, objectManager->getObjects().at(objectManager->getObjects().size() - 1)->getId() + 1);
-				tmpObject->setPosition(pos);
-				tmpObject->scale(glm::vec3(0.1, 0.1, 0.1));
-				objectManager->add(tmpObject);
+				//Object* tmpObject = new Object(sphere, sizeof(sphere), shader, objectManager->getObjects().at(objectManager->getObjects().size() - 1)->getId() + 1);
+				//tmpObject->setPosition(pos);
+				//tmpObject->scale(glm::vec3(0.1, 0.1, 0.1));
+				//objectManager->add(tmpObject);
 				Application::clicked = false;
 			}
 

@@ -65,7 +65,7 @@ void main () {
 				}
 		}
 
-		vec4 ambient = vec4(0.1, 0.1, 0.1, 1.0) * texture(textureUnitID, uv); 
+		vec4 ambient = vec4(0.6, 0.6, 0.6, 1.0) * texture(textureUnitID, uv); 
 		frag_colour += ambient;
 		//frag_colour = texture(textureUnitID, uv);
 		//     frag_colour += vec4(0.1, 0.0, 0.0, 1.0);
