@@ -1,4 +1,4 @@
-### Projekt do předmětu Základy počátačové grafiky.
+#Projekt do předmětu Základy počátačové grafiky.
 
 ##Jednoduchý 3D Renderer
 
