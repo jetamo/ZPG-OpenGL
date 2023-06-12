@@ -1,6 +1,6 @@
-#Projekt do předmětu Základy počátačové grafiky.
+# Projekt do předmětu Základy počátačové grafiky.
 
-##Jednoduchý 3D Renderer
+## Jednoduchý 3D Renderer
 
 -kamera
 -načítání objektů a textur
